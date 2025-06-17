@@ -1,0 +1,79 @@
+
+.date-picker-popup .day-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -fx-text-base-color;
+    -fx-border-color: transparent;
+    -fx-border-width: 1px;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+}
+
+.date-picker-popup .day-cell.previous-month, .day-cell.next-month{
+    -fx-text-fill: gray;
+}
+
+.date-picker-popup .day-cell.today {
+    -fx-background-color: #18aedb;
+    -fx-text-fill: white; /* Текст должен быть белым для контраста */
+    -fx-font-weight: bold; /* Можно сделать жирным для выделения */
+    -fx-background-radius: 5px; /* Немного скруглим углы */
+    -fx-border-color: transparent; /* Без рамки по умолчанию */
+}
+
+/* 3) Выбранная дата - цвет и фон по умолчанию, рамка цветом #18aedb */
+.date-picker-popup .day-cell.selected {
+    -fx-background-color: transparent; /* Фон как по умолчанию */
+    -fx-text-fill: -fx-text-base-color; /* Цвет текста как по умолчанию */
+    -fx-border-color: #18aedb; /* Рамка нужным цветом */
+    -fx-border-width: 1px;
+    -fx-background-radius: 5px; /* Скругление, чтобы соответствовать сегодняшней дате */
+    -fx-border-radius: 5px;
+}
+
+
+/* =========================================================================
+ * СТИЛИ ДЛЯ НАВЕДЕНИЯ МЫШКИ (:hover)
+ * Важен порядок: более специфичные правила должны идти ниже
+ * ========================================================================= */
+
+/* 4) Дата на которую наводишь мышку (не сегодня и не выбранная) - серая рамка */
+/* Применяется к любой ячейке, которая не 'today' и не 'selected' */
+.date-picker-popup .day-cell:hover {
+    -fx-border-color: gray;
+    -fx-border-width: 1px;
+    -fx-background-color: transparent; /* Сохраняем прозрачный фон, если он не 'today' */
+    -fx-text-fill: -fx-text-base-color; /* Сохраняем цвет текста по умолчанию */
+    -fx-background-radius: 5px;
+    -fx-border-radius: 5px;
+}
+
+/* 5) Дата на которую наводишь мышку (сегодня) - светлая рамка */
+/* Это правило более специфично, чем предыдущее, так как у него есть .today */
+.date-picker-popup .day-cell.today:hover {
+    -fx-background-color: #18aedb; /* Фон остается прежним */
+    -fx-text-fill: white; /* Текст остается белым */
+    -fx-border-color: lightgrey; /* Светлая рамка */
+    -fx-border-width: 1px;
+    -fx-background-radius: 5px;
+    -fx-border-radius: 5px;
+}
+
+/* 6) Дата на которую наводишь мышку (выбранная) - чуть более темная рамка */
+/* Это правило более специфично, чем п.4, так как у него есть .selected */
+.date-picker-popup .day-cell.selected:hover {
+    -fx-background-color: transparent; /* Фон остается как по умолчанию */
+    -fx-text-fill: -fx-text-base-color; /* Текст остается как по умолчанию */
+    -fx-border-color: derive(#18aedb, -20%); /* Чуть более темный оттенок #18aedb */
+    -fx-border-width: 1px;
+    -fx-background-radius: 5px;
+    -fx-border-radius: 5px;
+}
+
+.date-picker-popup .day-cell.today.selected:hover {
+    -fx-background-color: #18aedb;
+    -fx-text-fill: white;
+    -fx-border-color: black;
+    -fx-border-width: 2px;
+    -fx-background-radius: 5px;
+    -fx-border-radius: 5px;
+}
