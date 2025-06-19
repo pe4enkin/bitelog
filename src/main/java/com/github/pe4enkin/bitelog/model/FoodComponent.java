@@ -1,20 +1,15 @@
 package com.github.pe4enkin.bitelog.model;
 
-import java.util.Objects;
-
 public class FoodComponent {
     private long id;
-    private FoodItem parent;
-    private FoodItem ingredient;
+    private long parentFoodItemId;
+    private long ingredientFoodItemId;
     private double amountInGrams;
 
-    public FoodComponent() {
-    }
-
-    public FoodComponent(long id, FoodItem parent, FoodItem ingredient, double amountInGrams) {
+    public FoodComponent(long id, long parentFoodItemId, long ingredientFoodItemId, double amountInGrams) {
         this.id = id;
-        this.parent = parent;
-        this.ingredient = ingredient;
+        this.parentFoodItemId = parentFoodItemId;
+        this.ingredientFoodItemId = ingredientFoodItemId;
         this.amountInGrams = amountInGrams;
     }
 
@@ -27,21 +22,21 @@ public class FoodComponent {
         return this;
     }
 
-    public FoodItem getParent() {
-        return parent;
+    public long getParentFoodItemId() {
+        return parentFoodItemId;
     }
 
-    public FoodComponent setParent(FoodItem parent) {
-        this.parent = parent;
+    public FoodComponent setParentFoodItemId(long parentFoodItemId) {
+        this.parentFoodItemId = parentFoodItemId;
         return this;
     }
 
-    public FoodItem getIngredient() {
-        return ingredient;
+    public long getIngredientFoodItemId() {
+        return ingredientFoodItemId;
     }
 
-    public FoodComponent setIngredient(FoodItem ingredient) {
-        this.ingredient = ingredient;
+    public FoodComponent setIngredientFoodItemId(long ingredientFoodItemId) {
+        this.ingredientFoodItemId = ingredientFoodItemId;
         return this;
     }
 
@@ -56,22 +51,22 @@ public class FoodComponent {
 
     @Override
     public final boolean equals(Object o) {
-        if (!(o instanceof FoodComponent that)) return false;
-
-        return getId() == that.getId();
+        if (this == o) return true;
+        if (!(o instanceof FoodComponent foodComponent)) return false;
+        return getId() != 0 && getId() == foodComponent.getId();
     }
 
     @Override
     public int hashCode() {
-        return Long.hashCode(getId());
+        return getId() != 0 ? Long.hashCode(getId()) : 0;
     }
 
     @Override
     public String toString() {
         return "FoodComponent{" +
                 "id=" + id +
-                ", parent=" + parent +
-                ", ingredient=" + ingredient +
+                ", parentFoodItemId=" + parentFoodItemId +
+                ", ingredientFoodItemId=" + ingredientFoodItemId +
                 ", amountInGrams=" + amountInGrams +
                 '}';
     }

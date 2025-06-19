@@ -1,6 +1,5 @@
 package com.github.pe4enkin.bitelog.model;
 
-import javafx.application.Application;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 

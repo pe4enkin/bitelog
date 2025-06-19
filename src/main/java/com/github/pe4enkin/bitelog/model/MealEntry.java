@@ -3,7 +3,6 @@ package com.github.pe4enkin.bitelog.model;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Objects;
 
 public class MealEntry {
     private long id;
@@ -13,9 +12,6 @@ public class MealEntry {
     private List<MealComponent> components;
     private double totalCalories;
     private String notes;
-
-    public MealEntry() {
-    }
 
     public MealEntry(long id, LocalDate date, LocalTime time, MealCategory category, List<MealComponent> components, double totalCalories, String notes) {
         this.id = id;
@@ -92,14 +88,14 @@ public class MealEntry {
 
     @Override
     public final boolean equals(Object o) {
+        if (this == o) return true;
         if (!(o instanceof MealEntry mealEntry)) return false;
-
-        return getId() == mealEntry.getId();
+        return getId() != 0 && getId() == mealEntry.getId();
     }
 
     @Override
     public int hashCode() {
-        return Long.hashCode(getId());
+        return getId() != 0 ? Long.hashCode(getId()) : 0;
     }
 
     @Override

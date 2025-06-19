@@ -1,13 +1,8 @@
 package com.github.pe4enkin.bitelog.model;
 
-import java.util.Objects;
-
 public class FoodCategory {
     private long id;
     private String name;
-
-    public FoodCategory() {
-    }
 
     public FoodCategory(long id, String name) {
         this.id = id;
@@ -34,14 +29,14 @@ public class FoodCategory {
 
     @Override
     public final boolean equals(Object o) {
-        if (!(o instanceof FoodCategory that)) return false;
-
-        return getId() == that.getId();
+        if (this == o) return true;
+        if (!(o instanceof FoodCategory foodCategory)) return false;
+        return getId() != 0 && getId() == foodCategory.getId();
     }
 
     @Override
     public int hashCode() {
-        return Long.hashCode(getId());
+        return getId() != 0 ? Long.hashCode(getId()) : 0;
     }
 
     @Override

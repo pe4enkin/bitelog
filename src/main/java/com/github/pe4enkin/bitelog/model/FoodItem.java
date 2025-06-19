@@ -1,7 +1,6 @@
 package com.github.pe4enkin.bitelog.model;
 
 import java.util.List;
-import java.util.Objects;
 
 public class FoodItem {
     private long id;
@@ -131,14 +130,14 @@ public class FoodItem {
 
     @Override
     public final boolean equals(Object o) {
+        if (this == o) return true;
         if (!(o instanceof FoodItem foodItem)) return false;
-
-        return getId() == foodItem.getId();
+        return getId() != 0 && getId() == foodItem.getId();
     }
 
     @Override
     public int hashCode() {
-        return Long.hashCode(getId());
+        return getId() != 0 ? Long.hashCode(getId()) : 0;
     }
 
     @Override

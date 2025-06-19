@@ -1,18 +1,13 @@
 package com.github.pe4enkin.bitelog.model;
 
-import java.util.Objects;
-
 public class MealComponent {
     private long id;
-    private FoodItem foodItem;
+    private long foodItemId;
     private double amountInGrams;
 
-    public MealComponent() {
-    }
-
-    public MealComponent(long id, FoodItem foodItem, double amountInGrams) {
+    public MealComponent(long id, long foodItemId, double amountInGrams) {
         this.id = id;
-        this.foodItem = foodItem;
+        this.foodItemId = foodItemId;
         this.amountInGrams = amountInGrams;
     }
 
@@ -25,12 +20,12 @@ public class MealComponent {
         return this;
     }
 
-    public FoodItem getFoodItem() {
-        return foodItem;
+    public long getFoodItemId() {
+        return foodItemId;
     }
 
-    public MealComponent setFoodItem(FoodItem foodItem) {
-        this.foodItem = foodItem;
+    public MealComponent setFoodItemId(long foodItemId) {
+        this.foodItemId = foodItemId;
         return this;
     }
 
@@ -45,21 +40,21 @@ public class MealComponent {
 
     @Override
     public final boolean equals(Object o) {
-        if (!(o instanceof MealComponent that)) return false;
-
-        return getId() == that.getId();
+        if (this == o) return true;
+        if (!(o instanceof MealComponent mealComponent)) return false;
+        return getId() != 0 && getId() == mealComponent.getId();
     }
 
     @Override
     public int hashCode() {
-        return Long.hashCode(getId());
+        return getId() != 0 ? Long.hashCode(getId()) : 0;
     }
 
     @Override
     public String toString() {
         return "MealComponent{" +
                 "id=" + id +
-                ", foodItem=" + foodItem +
+                ", foodItemId=" + foodItemId +
                 ", amountInGrams=" + amountInGrams +
                 '}';
     }
