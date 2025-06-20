@@ -10,8 +10,11 @@ import java.sql.SQLException;
 
 public class DatabaseConnectionManager {
     private static final Logger logger = LoggerFactory.getLogger(DatabaseConnectionManager.class);
-    private static final String DB_FILE_PATH = "./data/bitelog.db";
-    private static final String DB_URL = "jdbc:sqlite:" + DB_FILE_PATH;
+    private static String DB_FILE_PATH = "./data/bitelog.db";
+    private static String DB_URL = "jdbc:sqlite:" + DB_FILE_PATH;
+    private static final String DEFAULT_DB_FILE_PATH = "./data/bitelog.db";
+    private static final String DEFAULT_DB_URL = "jdbc:sqlite:" + DB_FILE_PATH;
+
 
     public static Connection getConnection() throws SQLException {
         File dbFile = new File(DB_FILE_PATH);
@@ -44,5 +47,17 @@ public class DatabaseConnectionManager {
             logger.error("Ошибка соединения с базой данных по пути: {}", DB_URL, e);
             throw e;
         }
+    }
+
+    public static void configureForTesting(String testFilePath) {
+        logger.debug("Настройка пути к базе данных для целей тестрирования: {}", testFilePath);
+        DB_FILE_PATH = testFilePath;
+        DB_URL = "jdbc:sqlite:" + DB_FILE_PATH;
+    }
+
+    public static void resetToDefault() {
+        logger.debug("Сброс пути к базе данных на значение по умолчанию: {}", DEFAULT_DB_FILE_PATH);
+        DB_FILE_PATH = DEFAULT_DB_FILE_PATH;
+        DB_URL = DEFAULT_DB_URL;
     }
 }

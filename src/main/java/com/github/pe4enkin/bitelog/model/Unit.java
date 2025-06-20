@@ -9,7 +9,7 @@ public enum Unit {
     CUP("чш", "чашка"),
     TABLESPOON("ст.л", "столовая ложка"),
     TEASPOON("ч.л", "чайная ложка"),
-    SLICE("slice", "кусок");
+    SLICE("кус", "кусок");
 
     private final String shortName;
     private final String fullName;
