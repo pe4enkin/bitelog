@@ -3,7 +3,6 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.DatePicker?>
-<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
@@ -13,8 +12,6 @@
 
 <AnchorPane prefHeight="827.0" prefWidth="1415.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1">
    <children>
-      <Button fx:id="button" layoutX="207.0" layoutY="200.0" mnemonicParsing="false" onAction="#handleClick" prefHeight="82.0" prefWidth="187.0" text="Test button2" />
-      <Label fx:id="label" layoutX="149.0" layoutY="55.0" prefHeight="101.0" prefWidth="261.0" text="Test label" />
       <VBox layoutX="616.0" layoutY="200.0" prefHeight="49.0" prefWidth="200.0" spacing="1.0">
          <children>
             <HBox prefHeight="30.0" prefWidth="200.0" spacing="1.0">
@@ -60,7 +57,7 @@
                   <Insets left="63.0" right="63.0" />
                </padding>
             </HBox>
-            <DatePicker fx:id="dateSelection" prefHeight="24.0" prefWidth="200.0" />
+            <DatePicker fx:id="datePicker" prefHeight="24.0" prefWidth="200.0" />
          </children>
       </VBox>
    </children>
