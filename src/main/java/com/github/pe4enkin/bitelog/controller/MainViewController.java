@@ -12,6 +12,7 @@ public class MainViewController {
     @FXML
     private DatePicker datePicker;
 
+    @FXML
     private Button previousDayButton;
 
     @FXML
@@ -19,8 +20,6 @@ public class MainViewController {
 
     @FXML
     private Button nextDayButton;
-
-    @FXML
 
     private final AppState appState;
     private final DiaryService diaryService;
@@ -33,40 +32,37 @@ public class MainViewController {
     @FXML
     public void initialize() {
         datePicker.setValue(appState.getCurrentWorkingDate());
-        if (diaryService.loadForDate(appState.getCurrentWorkingDate())) {
-            //успешная загрузка
-        }
-        datePicker.valueProperty().addListener((observable, oldValue, newValue) -> {
+        appState.currentWorkingDateProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null) {
-                appState.setCurrentWorkingDate(newValue);
-                if (diaryService.loadForDate(appState.getCurrentWorkingDate())) {
-                    //успешная загрузка
+                if (!datePicker.getValue().equals(newValue)) {
+                    datePicker.setValue(newValue);
                 }
+                diaryService.loadForDate(appState.getCurrentWorkingDate());                    //успешная загрузка
             }
         });
 
-        appState.currentWorkingDateProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue != null && !datePicker.getValue().equals(newValue)) {
-                datePicker.setValue(newValue);
+        datePicker.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null && !appState.getCurrentWorkingDate().equals(newValue)) {
+                appState.setCurrentWorkingDate(newValue);
             }
         });
+
+        //Загрузка данных при инициализации приложения
+        diaryService.loadForDate(appState.getCurrentWorkingDate());
     }
 
     @FXML
     private void handlePreviousDayButtonAction() {
-        LocalDate previousDay = datePicker.getValue().minusDays(1);
-        datePicker.setValue(previousDay);
+        appState.setCurrentWorkingDate(appState.getCurrentWorkingDate().minusDays(1));
     }
 
     @FXML
     private void handleTodayButtonAction() {
-        LocalDate today = LocalDate.now();
-        datePicker.setValue(today);
+        appState.setCurrentWorkingDate(LocalDate.now());
     }
 
     @FXML
     private void handleNextDayButtonAction() {
-        LocalDate nextDay = datePicker.getValue().plusDays(1);
-        datePicker.setValue(nextDay);
+        appState.setCurrentWorkingDate(appState.getCurrentWorkingDate().plusDays(1));
     }
 }

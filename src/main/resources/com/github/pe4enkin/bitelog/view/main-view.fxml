@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="827.0" prefWidth="1415.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1">
+<AnchorPane prefHeight="827.0" prefWidth="1415.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.pe4enkin.bitelog.controller.MainViewController">
    <children>
       <VBox layoutX="616.0" layoutY="200.0" prefHeight="49.0" prefWidth="200.0" spacing="1.0">
          <children>

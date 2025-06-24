@@ -2,61 +2,72 @@ package com.github.pe4enkin.bitelog.controller;
 
 import com.github.pe4enkin.bitelog.model.AppState;
 import com.github.pe4enkin.bitelog.service.DiaryService;
-import javafx.application.Platform;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.DatePicker;
+import javafx.stage.Stage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.testfx.framework.junit5.ApplicationTest;
+import org.testfx.util.WaitForAsyncUtils;
 
-import java.lang.reflect.Field;
 import java.time.LocalDate;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-public class MainViewControllerTest {
+public class MainViewControllerTest extends ApplicationTest {
 
     private MainViewController controller;
     private AppState appState;
+    @Mock
     private DiaryService diaryService;
 
     private DatePicker datePicker;
 
-    @BeforeEach
-    void setUp() throws InterruptedException {
+    @Override
+    public void start(Stage stage) throws Exception {
+        MockitoAnnotations.openMocks(this);
         appState = new AppState();
-        diaryService = mock(DiaryService.class);
-        controller = new MainViewController(appState, diaryService);
-
-        CountDownLatch latch = new CountDownLatch(1);
-        Platform.runLater(() -> {
-            datePicker = new DatePicker();
-            injectField(controller, "datePicker", datePicker);
-            latch.countDown();
-        });
-        latch.await(3, TimeUnit.SECONDS);
-
         when(diaryService.loadForDate(any(LocalDate.class))).thenReturn(true);
-
-        CountDownLatch initLatch = new CountDownLatch(1);
-        Platform.runLater(() -> {
-            controller.initialize();
-            initLatch.countDown();
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/github/pe4enkin/bitelog/view/main-view.fxml"));
+        loader.setControllerFactory(type -> {
+            if (type == MainViewController.class) {
+                controller = new MainViewController(appState, diaryService);
+                return controller;
+            } else {
+                try {
+                    return type.getDeclaredConstructor().newInstance();
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
         });
-        initLatch.await(3, TimeUnit.SECONDS);
+        Parent root = loader.load();
+        Scene scene = new Scene(root);
+        stage.setScene(scene);
+        stage.show();
+        datePicker = lookup("#datePicker").query();
+        assertNotNull(datePicker, "Datepicker должен быть найден по fx:id = 'datePicker'");
     }
 
-    private void injectField(Object target, String fieldName, Object value) {
-        try {
-            Field field = target.getClass().getDeclaredField(fieldName);
-            field.setAccessible(true);
-            field.set(target, value);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    @BeforeEach
+    void setUp() throws TimeoutException {
+        appState.setCurrentWorkingDate(LocalDate.now());
+        reset(diaryService);
+        when(diaryService.loadForDate(any(LocalDate.class))).thenReturn(true);
+        interact(() -> {
+            datePicker.setValue(appState.getCurrentWorkingDate());
+        });
+        WaitForAsyncUtils.waitForFxEvents();
     }
 
     @Test
@@ -68,48 +79,58 @@ public class MainViewControllerTest {
 
     @Test
     @DisplayName("Обновление AppState при изменении календаря.")
-    void datePickerUpdatesAppStateAndLoadsData() throws InterruptedException {
+    void datePickerUpdatesAppStateAndLoadsData() {
         LocalDate newDate = appState.getCurrentWorkingDate().plusDays(5);
-
-        CountDownLatch latch = new CountDownLatch(1);
-        Platform.runLater(() -> {
-            datePicker.setValue(newDate);
-            latch.countDown();
-        });
-        latch.await(2, TimeUnit.SECONDS);
+        interact(() -> datePicker.setValue(newDate));
+        WaitForAsyncUtils.waitForFxEvents();
         assertEquals(newDate, appState.getCurrentWorkingDate());
+        verify(diaryService, atLeastOnce()).loadForDate(newDate);
     }
 
     @Test
     @DisplayName("Обновление календаря при изменении AppState.")
-    void appStateUpdatesDatePicker() throws InterruptedException {
+    void appStateUpdatesDatePicker() {
         LocalDate newDate = appState.getCurrentWorkingDate().plusDays(5);
-
-        CountDownLatch latch = new CountDownLatch(1);
-        Platform.runLater(() -> {
-            appState.setCurrentWorkingDate(newDate);
-            latch.countDown();
-        });
-        latch.await(2, TimeUnit.SECONDS);
-
+        interact(() -> appState.setCurrentWorkingDate(newDate));
+        WaitForAsyncUtils.waitForFxEvents();
         assertEquals(newDate, datePicker.getValue());
     }
 
     @Test
     @DisplayName("Работа кнопки 'предыдущий день'.")
-    void handlePreviousDayButtonActionSetsPreviousDay() throws InterruptedException {
-
+    void handlePreviousDayButtonActionSetsPreviousDay() throws TimeoutException {
+        LocalDate initialDate = appState.getCurrentWorkingDate();
+        interact(() -> datePicker.setValue(initialDate));
+        WaitForAsyncUtils.waitForFxEvents();
+        clickOn("#previousDayButton");
+        LocalDate expectedDate = initialDate.minusDays(1);
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> expectedDate.equals(datePicker.getValue()));
+        assertEquals(expectedDate, datePicker.getValue());
+        verify(diaryService, atLeastOnce()).loadForDate(expectedDate);
     }
 
     @Test
     @DisplayName("Работа кнопки 'сегодня'.")
-    void handleTodayButtonActionSetsToday() throws InterruptedException {
-
+    void handleTodayButtonActionSetsToday() throws TimeoutException{
+        LocalDate initialDate = LocalDate.now().minusDays(5);
+        interact(() -> datePicker.setValue(initialDate));
+        WaitForAsyncUtils.waitForFxEvents();
+        clickOn("#todayButton");
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> LocalDate.now().equals(datePicker.getValue()));
+        assertEquals(LocalDate.now(), datePicker.getValue());
+        verify(diaryService, atLeastOnce()).loadForDate(LocalDate.now());
     }
 
     @Test
     @DisplayName("Работа кнопки 'следующий день'.")
-    void handleNextDayButtonActionSetsNextDay() throws InterruptedException {
-
+    void handleNextDayButtonActionSetsNextDay() throws TimeoutException{
+        LocalDate initialDate = appState.getCurrentWorkingDate();
+        interact(() -> datePicker.setValue(initialDate));
+        WaitForAsyncUtils.waitForFxEvents();
+        clickOn("#nextDayButton");
+        LocalDate expectedDate = initialDate.plusDays(1);
+        WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> expectedDate.equals(datePicker.getValue()));
+        assertEquals(expectedDate, datePicker.getValue());
+        verify(diaryService, atLeastOnce()).loadForDate(expectedDate);
     }
 }

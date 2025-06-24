@@ -36,7 +36,17 @@ public class MainApp extends Application {
         FXMLLoader loader = new FXMLLoader(
                 getClass().getResource("/com/github/pe4enkin/bitelog/view/main-view.fxml"));
         MainViewController controller = new MainViewController(appState, diaryService);
-        loader.setController(controller);
+        loader.setControllerFactory(type -> {
+            if (type == MainViewController.class) {
+                return new MainViewController(appState, diaryService);
+            } else {
+                try {
+                    return type.getDeclaredConstructor().newInstance();
+                } catch (Exception e) {
+                    throw new RuntimeException("Не удалось создать контроллер: " + type.getName(), e);
+                }
+            }
+        });
         Scene scene = new Scene(loader.load());
         scene.getStylesheets().add(
                 getClass().getResource("/com/github/pe4enkin/bitelog/styles/application.css").toExternalForm());
