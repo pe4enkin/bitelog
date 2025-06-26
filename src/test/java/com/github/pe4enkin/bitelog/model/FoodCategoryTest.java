@@ -21,7 +21,6 @@ public class FoodCategoryTest {
         assertTrue(foodCategory2.equals(foodCategory1));
         assertEquals(foodCategory1.hashCode(), foodCategory2.hashCode());
 
-        assertTrue(foodCategory1.equals(foodCategory2));
         assertTrue(foodCategory2.equals(foodCategory3));
         assertTrue(foodCategory1.equals(foodCategory3));
         assertEquals(foodCategory1.hashCode(), foodCategory3.hashCode());

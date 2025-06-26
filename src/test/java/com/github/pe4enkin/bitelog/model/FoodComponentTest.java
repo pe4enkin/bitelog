@@ -21,7 +21,6 @@ public class FoodComponentTest {
         assertTrue(foodComponent2.equals(foodComponent1));
         assertEquals(foodComponent1.hashCode(), foodComponent2.hashCode());
 
-        assertTrue(foodComponent1.equals(foodComponent2));
         assertTrue(foodComponent2.equals(foodComponent3));
         assertTrue(foodComponent1.equals(foodComponent3));
         assertEquals(foodComponent1.hashCode(), foodComponent3.hashCode());
