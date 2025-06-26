@@ -57,6 +57,11 @@ public class MainViewControllerTest extends ApplicationTest {
         stage.show();
         datePicker = lookup("#datePicker").query();
         assertNotNull(datePicker, "Datepicker должен быть найден по fx:id = 'datePicker'");
+        WaitForAsyncUtils.waitForFxEvents();
+        assertEquals(appState.getCurrentWorkingDate(), datePicker.getValue(), "Datepicker должен быть инициализирован текущей датой из AppState.");
+        verify(diaryService, atLeastOnce()).loadForDate(appState.getCurrentWorkingDate());
+        reset(diaryService);
+        when(diaryService.loadForDate(any(LocalDate.class))).thenReturn(true);
     }
 
     @BeforeEach
@@ -68,13 +73,6 @@ public class MainViewControllerTest extends ApplicationTest {
             datePicker.setValue(appState.getCurrentWorkingDate());
         });
         WaitForAsyncUtils.waitForFxEvents();
-    }
-
-    @Test
-    @DisplayName("Установка даты и загрузка информации при инициализации приложения.")
-    void initializeSetsDatePickerAndLoadsData() {
-        assertEquals(appState.getCurrentWorkingDate(), datePicker.getValue());
-        verify(diaryService, atLeastOnce()).loadForDate(appState.getCurrentWorkingDate());
     }
 
     @Test

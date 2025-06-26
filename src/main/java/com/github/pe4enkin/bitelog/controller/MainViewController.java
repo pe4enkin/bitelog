@@ -37,7 +37,7 @@ public class MainViewController {
                 if (!datePicker.getValue().equals(newValue)) {
                     datePicker.setValue(newValue);
                 }
-                diaryService.loadForDate(appState.getCurrentWorkingDate());                    //успешная загрузка
+                diaryService.loadForDate(newValue);
             }
         });
 
