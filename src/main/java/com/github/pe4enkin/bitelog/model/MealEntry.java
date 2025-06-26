@@ -8,16 +8,16 @@ public class MealEntry {
     private long id;
     private LocalDate date;
     private LocalTime time;
-    private MealCategory category;
+    private MealCategory mealCategory;
     private List<MealComponent> components;
     private double totalCalories;
     private String notes;
 
-    public MealEntry(long id, LocalDate date, LocalTime time, MealCategory category, List<MealComponent> components, double totalCalories, String notes) {
+    public MealEntry(long id, LocalDate date, LocalTime time, MealCategory mealCategory, List<MealComponent> components, double totalCalories, String notes) {
         this.id = id;
         this.date = date;
         this.time = time;
-        this.category = category;
+        this.mealCategory = mealCategory;
         this.components = components;
         this.totalCalories = totalCalories;
         this.notes = notes;
@@ -50,12 +50,12 @@ public class MealEntry {
         return this;
     }
 
-    public MealCategory getCategory() {
-        return category;
+    public MealCategory getMealCategory() {
+        return mealCategory;
     }
 
-    public MealEntry setCategory(MealCategory category) {
-        this.category = category;
+    public MealEntry setMealCategory(MealCategory mealCategory) {
+        this.mealCategory = mealCategory;
         return this;
     }
 
@@ -104,7 +104,7 @@ public class MealEntry {
                 "id=" + id +
                 ", date=" + date +
                 ", time=" + time +
-                ", category=" + category +
+                ", mealCategory=" + mealCategory +
                 ", components=" + components +
                 ", totalCalories=" + totalCalories +
                 ", notes='" + notes + '\'' +

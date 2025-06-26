@@ -10,40 +10,40 @@ public class FoodCategoryTest {
     @Test
     @DisplayName("Проверка equals и hashCode при равенстве ID")
     void testEqualsAndHashCodeEqualById () {
-        FoodCategory category1 = new FoodCategory(1, "Мясо");
-        FoodCategory category2 = new FoodCategory(1, "Мясо");
-        FoodCategory category3 = new FoodCategory(1, "Не мясо");
+        FoodCategory foodCategory1 = new FoodCategory(1, "Мясо");
+        FoodCategory foodCategory2 = new FoodCategory(1, "Мясо");
+        FoodCategory foodCategory3 = new FoodCategory(1, "Не мясо");
 
-        assertTrue(category1.equals(category1));
-        assertEquals(category1.hashCode(), category1.hashCode());
+        assertTrue(foodCategory1.equals(foodCategory1));
+        assertEquals(foodCategory1.hashCode(), foodCategory1.hashCode());
 
-        assertTrue(category1.equals(category2));
-        assertTrue(category2.equals(category1));
-        assertEquals(category1.hashCode(), category2.hashCode());
+        assertTrue(foodCategory1.equals(foodCategory2));
+        assertTrue(foodCategory2.equals(foodCategory1));
+        assertEquals(foodCategory1.hashCode(), foodCategory2.hashCode());
 
-        assertTrue(category1.equals(category2));
-        assertTrue(category2.equals(category3));
-        assertTrue(category1.equals(category3));
-        assertEquals(category1.hashCode(), category3.hashCode());
+        assertTrue(foodCategory1.equals(foodCategory2));
+        assertTrue(foodCategory2.equals(foodCategory3));
+        assertTrue(foodCategory1.equals(foodCategory3));
+        assertEquals(foodCategory1.hashCode(), foodCategory3.hashCode());
     }
 
     @Test
     @DisplayName("Проверка equals и hashCode при разных ID")
     void testEqualsAndHashCodeNotEqualById() {
-        FoodCategory category1 = new FoodCategory(1, "Мясо");
-        FoodCategory category2 = new FoodCategory(2, "Мясо");
-        FoodCategory category3 = new FoodCategory(0, "Мясо");
-        FoodCategory category4 = new FoodCategory(0, "Мясо");
+        FoodCategory foodCategory1 = new FoodCategory(1, "Мясо");
+        FoodCategory foodCategory2 = new FoodCategory(2, "Мясо");
+        FoodCategory foodCategory3 = new FoodCategory(0, "Мясо");
+        FoodCategory foodCategory4 = new FoodCategory(0, "Мясо");
 
-        assertFalse(category1.equals(category2));
-        assertFalse(category2.equals(category1));
-        assertNotEquals(category1.hashCode(), category2.hashCode());
+        assertFalse(foodCategory1.equals(foodCategory2));
+        assertFalse(foodCategory2.equals(foodCategory1));
+        assertNotEquals(foodCategory1.hashCode(), foodCategory2.hashCode());
 
-        assertFalse(category1.equals(null));
-        assertFalse(category1.equals("Объект другого типа."));
+        assertFalse(foodCategory1.equals(null));
+        assertFalse(foodCategory1.equals("Объект другого типа."));
 
-        assertEquals(0, category3.hashCode());
-        assertFalse(category1.equals(category3));
-        assertFalse(category3.equals(category4));
+        assertEquals(0, foodCategory3.hashCode());
+        assertFalse(foodCategory1.equals(foodCategory3));
+        assertFalse(foodCategory3.equals(foodCategory4));
     }
 }

@@ -12,7 +12,7 @@ public class FoodItem {
     private double fatsPer100g;
     private double carbsPer100g;
     private boolean isComposite;
-    private FoodCategory category;
+    private FoodCategory foodCategory;
     private List<FoodComponent> components;
 
     private FoodItem(Builder builder) {
@@ -25,7 +25,7 @@ public class FoodItem {
         this.fatsPer100g = builder.fatsPer100g;
         this.carbsPer100g = builder.carbsPer100g;
         this.isComposite = builder.isComposite;
-        this.category = builder.category;
+        this.foodCategory = builder.foodCategory;
         this.components = builder.components;
     }
 
@@ -110,12 +110,12 @@ public class FoodItem {
         return this;
     }
 
-    public FoodCategory getCategory() {
-        return category;
+    public FoodCategory getFoodCategory() {
+        return foodCategory;
     }
 
-    public FoodItem setCategory(FoodCategory category) {
-        this.category = category;
+    public FoodItem setFoodCategory(FoodCategory foodCategory) {
+        this.foodCategory = foodCategory;
         return this;
     }
 
@@ -152,7 +152,7 @@ public class FoodItem {
                 ", fatsPer100g=" + fatsPer100g +
                 ", carbsPer100g=" + carbsPer100g +
                 ", isComposite=" + isComposite +
-                ", category=" + category +
+                ", foodCategory=" + foodCategory +
                 ", components=" + components +
                 '}';
     }
@@ -167,7 +167,7 @@ public class FoodItem {
         private double fatsPer100g;
         private double carbsPer100g;
         private boolean isComposite;
-        private FoodCategory category;
+        private FoodCategory foodCategory;
         private List<FoodComponent> components;
 
         public Builder setId(long id) {
@@ -215,8 +215,8 @@ public class FoodItem {
             return this;
         }
 
-        public Builder setCategory(FoodCategory category) {
-            this.category = category;
+        public Builder setFoodCategory(FoodCategory foodCategory) {
+            this.foodCategory = foodCategory;
             return this;
         }
 
