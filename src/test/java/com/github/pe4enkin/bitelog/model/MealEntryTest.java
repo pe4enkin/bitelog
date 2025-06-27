@@ -17,7 +17,7 @@ public class MealEntryTest {
         MealEntry mealEntry1 = new MealEntry(1,
                 LocalDate.of(2025, 6, 26),
                 LocalTime.of(12, 0),
-                MealCategory.BREAKFAST,
+                MealCategory.LUNCH,
                 Collections.emptyList(),
                 500,
                 "Обед");
@@ -56,7 +56,7 @@ public class MealEntryTest {
         MealEntry mealEntry1 = new MealEntry(1,
                 LocalDate.of(2025, 6, 26),
                 LocalTime.of(12, 0),
-                MealCategory.BREAKFAST,
+                MealCategory.LUNCH,
                 Collections.emptyList(),
                 500,
                 "Обед");
