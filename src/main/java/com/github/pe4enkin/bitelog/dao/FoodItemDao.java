@@ -1,13 +1,17 @@
 package com.github.pe4enkin.bitelog.dao;
 
 import com.github.pe4enkin.bitelog.db.DatabaseConnectionManager;
+import com.github.pe4enkin.bitelog.model.FoodCategory;
 import com.github.pe4enkin.bitelog.model.FoodComponent;
 import com.github.pe4enkin.bitelog.model.FoodItem;
+import com.github.pe4enkin.bitelog.model.Unit;
 import com.github.pe4enkin.bitelog.sql.SqlQueries;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FoodItemDao {
 
@@ -101,4 +105,72 @@ public class FoodItemDao {
             }
         }
     }
+
+    public FoodItem findById(long id) throws SQLException {
+
+        FoodItem foodItem = null;
+        Connection connection = null;
+
+        try {
+            connection = DatabaseConnectionManager.getConnection();
+            try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.SELECT_FOOD_ITEM)) {
+                pstmt.setLong(1, id);
+                try (ResultSet rs = pstmt.executeQuery()) {
+                    if (rs.next()) {
+                        FoodCategory foodCategory = null;
+                        if (rs.getObject("category_id") != null) {
+                            foodCategory = new FoodCategory(rs.getLong("category_id"), rs.getString("category_name"));
+                        }
+                        foodItem = new FoodItem.Builder()
+                                .setId(rs.getLong("id"))
+                                .setName(rs.getString("name"))
+                                .setCaloriesPer100g(rs.getDouble("calories_per_100g"))
+                                .setServingSizeInGrams(rs.getDouble("serving_size_in_grams"))
+                                .setUnit(Unit.valueOf(rs.getString("unit")))
+                                .setProteinsPer100g(rs.getDouble("proteins_per_100g"))
+                                .setFatsPer100g(rs.getDouble("fats_per_100g"))
+                                .setCarbsPer100g(rs.getDouble("carbs_per_100g"))
+                                .setComposite(rs.getInt("is_composite") == 1)
+                                .setFoodCategory(foodCategory)
+                                .setComponents(null)
+                                .build();
+
+                        if (foodItem.isComposite()) {
+                            List<FoodComponent> components = new ArrayList<>();
+                            try (PreparedStatement pstmtComponents = connection.prepareStatement(SqlQueries.SELECT_FOOD_COMPONENT)) {
+                                pstmtComponents.setLong(1, foodItem.getId());
+                                try (ResultSet rsComponents = pstmtComponents.executeQuery()) {
+                                    while (rsComponents.next()) {
+                                        components.add(new FoodComponent(
+                                                rsComponents.getLong("id"),
+                                                rsComponents.getLong("parent_food_item_id"),
+                                                rsComponents.getLong("ingredient_food_item_id"),
+                                                rsComponents.getDouble("amount_in_grams")
+                                        ));
+                                    }
+                                }
+                            }
+                            foodItem.setComponents(components.isEmpty() ? null : components);
+                        }
+                        logger.info("Найден FoodItem: {}", foodItem.getName());
+                    } else {
+                        logger.info("FoodItem c ID {} не найден.", id);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            logger.error("Ошибка SQL при поиске FoodItem с ID: {}", id, e);
+            throw e;
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException closeEx) {
+                    logger.error("Ошибка закрытия соединения после поиска food item", closeEx);
+                }
+            }
+        }
+        return foodItem;
+    }
+
 }
