@@ -15,7 +15,7 @@ import java.util.List;
 
 public class FoodItemDao {
 
-    private static final Logger logger = LoggerFactory.getLogger(FoodItemDao.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FoodItemDao.class);
 
     public FoodItemDao() {
     }
@@ -26,9 +26,9 @@ public class FoodItemDao {
              Statement stmt = connection.createStatement()) {
             stmt.execute(SqlQueries.CREATE_FOOD_ITEMS_TABLE);
             stmt.execute(SqlQueries.CREATE_FOOD_COMPONENTS_TABLE);
-            logger.info("Таблицы food_items и food_components успешно созданы (или уже существовали)");
+            LOGGER.info("Таблицы food_items и food_components успешно созданы (или уже существовали)");
         } catch (SQLException e) {
-            logger.error("Ошибка создания таблиц food_items и food_components: ", e);
+            LOGGER.error("Ошибка создания таблиц food_items и food_components: ", e);
             throw e;
         }
     }
@@ -60,7 +60,7 @@ public class FoodItemDao {
                 try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         foodItem.setId(generatedKeys.getLong(1));
-                        logger.info("FoodItem '{}' saved with ID: {}", foodItem.getName(), foodItem.getId());
+                        LOGGER.info("FoodItem {} saved with ID {}", foodItem.getName(), foodItem.getId());
                     } else {
                         throw new SQLException("Создание food item не удалось, ID не было получено.");
                     }
@@ -71,7 +71,7 @@ public class FoodItemDao {
                 try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.INSERT_FOOD_COMPONENT)) {
                     for (FoodComponent component : foodItem.getComponents()) {
                         if (component.getIngredientFoodItemId() == 0) {
-                            logger.warn("Обнаружен FoodComponent c ID 0.");
+                            LOGGER.warn("Обнаружен FoodComponent c ID 0.");
                         }
                         pstmt.setLong(1, foodItem.getId());
                         pstmt.setLong(2, component.getIngredientFoodItemId());
@@ -79,18 +79,18 @@ public class FoodItemDao {
                         pstmt.addBatch();
                     }
                     pstmt.executeBatch();
-                    logger.info("Сохранено {} компонентов для food item с ID: {}", foodItem.getComponents().size(), foodItem.getId());
+                    LOGGER.info("Сохранено {} компонентов для food item с ID {}", foodItem.getComponents().size(), foodItem.getId());
                 }
             }
             connection.commit();
             return foodItem;
         } catch (SQLException e) {
-            logger.error("Ошибка сохранения food item: {}. Откат транзакции.", foodItem.getName(), e);
+            LOGGER.error("Ошибка сохранения FoodItem {}. Откат транзакции.", foodItem.getName(), e);
             if (connection != null) {
                 try {
                     connection.rollback();
                 } catch (SQLException rollbackEx) {
-                    logger.error("Ошибка отката транзакции для food item: {}", foodItem.getName(), rollbackEx);
+                    LOGGER.error("Ошибка отката транзакции для сохранения FoodItem {}", foodItem.getName(), rollbackEx);
                 }
             }
             throw e;
@@ -100,7 +100,7 @@ public class FoodItemDao {
                     connection.setAutoCommit(true);
                     connection.close();
                 } catch (SQLException closeEx) {
-                    logger.error("Ошибка закрытия соединения после сохранения food item", closeEx);
+                    LOGGER.error("Ошибка закрытия соединения после сохранения food item", closeEx);
                 }
             }
         }
@@ -152,25 +152,99 @@ public class FoodItemDao {
                             }
                             foodItem.setComponents(components.isEmpty() ? null : components);
                         }
-                        logger.info("Найден FoodItem: {}", foodItem.getName());
+                        LOGGER.info("Найден food item {}", foodItem.getName());
                     } else {
-                        logger.info("FoodItem c ID {} не найден.", id);
+                        LOGGER.info("food item c ID {} не найден.", id);
                     }
                 }
             }
         } catch (SQLException e) {
-            logger.error("Ошибка SQL при поиске FoodItem с ID: {}", id, e);
+            LOGGER.error("Ошибка SQL при поиске FoodItem с ID {}", id, e);
             throw e;
         } finally {
             if (connection != null) {
                 try {
                     connection.close();
                 } catch (SQLException closeEx) {
-                    logger.error("Ошибка закрытия соединения после поиска food item", closeEx);
+                    LOGGER.error("Ошибка закрытия соединения после поиска food item", closeEx);
                 }
             }
         }
         return foodItem;
+    }
+
+    public boolean update (FoodItem foodItem) throws SQLException {
+
+        Connection connection = null;
+
+        try {
+            connection = DatabaseConnectionManager.getConnection();
+            connection.setAutoCommit(false);
+
+            try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.UPDATE_FOOD_ITEM)) {
+                pstmt.setString(1, foodItem.getName());
+                pstmt.setDouble(2, foodItem.getCaloriesPer100g());
+                pstmt.setDouble(3, foodItem.getServingSizeInGrams());
+                pstmt.setString(4, foodItem.getUnit().name());
+                pstmt.setDouble(5, foodItem.getProteinsPer100g());
+                pstmt.setDouble(6, foodItem.getFatsPer100g());
+                pstmt.setDouble(7, foodItem.getCarbsPer100g());
+                pstmt.setInt(8, foodItem.isComposite() ? 1 : 0);
+                pstmt.setObject(9, foodItem.getFoodCategory() != null ? foodItem.getFoodCategory().getId() : null);
+                pstmt.setLong(10, foodItem.getId());
+
+                int affectedRows = pstmt.executeUpdate();
+                if (affectedRows == 0) {
+                    connection.rollback();
+                    LOGGER.warn("food item c ID {} для обновления не найден.", foodItem.getId());
+                    return false;
+                }
+                LOGGER.info("food item {} c ID {} обновлен.", foodItem.getName(), foodItem.getId());
+            }
+
+            try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.DELETE_FOOD_COMPONENT)) {
+                pstmt.setLong(1, foodItem.getId());
+                pstmt.executeUpdate();
+                LOGGER.info("Удаление существующих компонентов для food item c ID {}", foodItem.getId());
+            }
+
+            if (foodItem.isComposite() && foodItem.getComponents() != null && !foodItem.getComponents().isEmpty()) {
+                try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.INSERT_FOOD_COMPONENT)) {
+                    for (FoodComponent component : foodItem.getComponents()) {
+                        if (component.getIngredientFoodItemId() == 0) {
+                            LOGGER.warn("Обнаружен FoodComponent c ID 0.");
+                        }
+                        pstmt.setLong(1, foodItem.getId());
+                        pstmt.setLong(2, component.getIngredientFoodItemId());
+                        pstmt.setDouble(3, component.getAmountInGrams());
+                        pstmt.addBatch();
+                    }
+                    pstmt.executeBatch();
+                    LOGGER.info("Обновлено {} компонентов для food item с ID {}", foodItem.getComponents().size(), foodItem.getId());
+                }
+            }
+            connection.commit();
+            return true;
+        } catch (SQLException e) {
+            LOGGER.error("Ошибка обновления FoodItem {}. Откат транзакции.", foodItem.getName(), e);
+            if (connection != null) {
+                try {
+                    connection.rollback();
+                } catch (SQLException rollbackEx) {
+                    LOGGER.error("Ошибка отката транзакции для обновления FoodItem {}", foodItem.getName(), rollbackEx);
+                }
+            }
+            throw e;
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.setAutoCommit(true);
+                    connection.close();
+                } catch (SQLException closeEx) {
+                    LOGGER.error("Ошибка закрытия соединения после обновления food item", closeEx);
+                }
+            }
+        }
     }
 
 }

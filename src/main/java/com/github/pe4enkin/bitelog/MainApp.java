@@ -16,7 +16,7 @@ import java.sql.SQLException;
 
 public class MainApp extends Application {
 
-    private static final Logger logger = LoggerFactory.getLogger(MainApp.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MainApp.class);
     private AppState appState;
     private DiaryService diaryService;
     private Connection dbConnection;
@@ -25,10 +25,10 @@ public class MainApp extends Application {
     public void start(Stage primaryStage) throws Exception {
         try {
             dbConnection = DatabaseConnectionManager.getConnection();
-            logger.info("Успешно подключено к базе данных. Приложение готово к запуску UI.");
+            LOGGER.info("Успешно подключено к базе данных. Приложение готово к запуску UI.");
             diaryService = new DiaryService();
         } catch (Exception e) {
-            logger.error("Критическая ошибка соединения с базой данных.", e);
+            LOGGER.error("Критическая ошибка соединения с базой данных.", e);
             javafx.application.Platform.exit();
             System.exit(1);
         }
@@ -59,12 +59,12 @@ public class MainApp extends Application {
         if ((dbConnection != null)) {
             try {
                 dbConnection.close();
-                logger.info("Соединение с базой данных успешно закрыто.");
+                LOGGER.info("Соединение с базой данных успешно закрыто.");
             } catch (SQLException e) {
-                logger.error("Ошибка при закрытии соединения с базой данных.", e);
+                LOGGER.error("Ошибка при закрытии соединения с базой данных.", e);
             }
         }
-        logger.info("Приложение BiteLog завершает работу.");
+        LOGGER.info("Приложение BiteLog завершает работу.");
         super.stop();
     }
 

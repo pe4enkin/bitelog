@@ -45,7 +45,7 @@ public class SqlQueries {
             FROM food_items fi
             LEFT JOIN food_categories fc
             ON fi.food_category_id = fc.id
-            WHERE fi.id = ?
+            WHERE fi.id = ?;
             """;
 
     public static final String SELECT_FOOD_COMPONENT = """
@@ -54,6 +54,25 @@ public class SqlQueries {
             FROM food_components fc
             JOIN food_items fi
             ON fc.ingredient_food_item_id = fi.id
-            WHERE fc.parent_food_item_id = ?
+            WHERE fc.parent_food_item_id = ?;
+            """;
+
+    public static final String UPDATE_FOOD_ITEM = """
+            UPDATE food_items SET
+                name = ?,
+                calories_per_100g = ?,
+                serving_size_in_grams = ?,
+                unit = ?,
+                proteins_per_100g = ?,
+                fats_per_100g = ?,
+                carbs_per_100g = ?,
+                is_composite = ?,
+                food_category_id = ?
+            WHERE id = ?;
+            """;
+
+    public static final String DELETE_FOOD_COMPONENT = """
+            DELETE FROM food_components
+            WHERE parent_food_item_id = ?;
             """;
 }
