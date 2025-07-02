@@ -71,6 +71,11 @@ public class SqlQueries {
             WHERE id = ?;
             """;
 
+    public static final String DELETE_FOOD_ITEM = """
+            DELETE FROM food_items
+            WHERE id = ?;
+            """;
+
     public static final String DELETE_FOOD_COMPONENT = """
             DELETE FROM food_components
             WHERE parent_food_item_id = ?;

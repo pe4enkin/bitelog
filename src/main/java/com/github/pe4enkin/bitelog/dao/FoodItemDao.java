@@ -54,7 +54,7 @@ public class FoodItemDao {
                 int affectedRows = pstmt.executeUpdate();
 
                 if (affectedRows == 0) {
-                    throw new SQLException("Создание food item не удалось, ни одна строчка не была затронута.");
+                    throw new SQLException("Создание food item {} не удалось.", foodItem.getName());
                 }
 
                 try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
@@ -173,7 +173,7 @@ public class FoodItemDao {
         return foodItem;
     }
 
-    public boolean update (FoodItem foodItem) throws SQLException {
+    public boolean update(FoodItem foodItem) throws SQLException {
 
         Connection connection = null;
 
@@ -242,6 +242,49 @@ public class FoodItemDao {
                     connection.close();
                 } catch (SQLException closeEx) {
                     LOGGER.error("Ошибка закрытия соединения после обновления food item", closeEx);
+                }
+            }
+        }
+    }
+
+    public boolean delete(long id) throws SQLException {
+
+        Connection connection = null;
+
+        try {
+            connection = DatabaseConnectionManager.getConnection();
+            connection.setAutoCommit(false);
+
+            try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.DELETE_FOOD_ITEM)) {
+                pstmt.setLong(1, id);
+                int affectedRows = pstmt.executeUpdate();
+                if (affectedRows > 0) {
+                    LOGGER.info("food item c ID {} успешно удален.", id);
+                    connection.commit();
+                    return true;
+                } else {
+                    connection.rollback();
+                    LOGGER.warn("food item c ID {} для удаления не найден.", id);
+                    return false;
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.error("Ошибка удаления FoodItem с ID {}. Откат транзакции.", id, e);
+            if (connection != null) {
+                try {
+                    connection.rollback();
+                } catch (SQLException rollbackEx) {
+                    LOGGER.error("Ошибка отката транзакции для удаления FoodItem с ID {}", id, rollbackEx);
+                }
+            }
+            throw e;
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.setAutoCommit(true);
+                    connection.close();
+                } catch (SQLException closeEx) {
+                    LOGGER.error("Ошибка закрытия соединения после удаления food item", closeEx);
                 }
             }
         }
