@@ -48,6 +48,15 @@ public class SqlQueries {
             WHERE fi.id = ?;
             """;
 
+    public static final String SELECT_ALL_FOOD_ITEMS = """
+            SELECT fi.id, fi.name, fi.calories_per_100g, fi.serving_size_in_grams, fi.unit,
+                   fi.proteins_per_100g, fi.fats_per_100g, fi.carbs_per_100g, fi.is_composite,
+                   fc.id AS category_id, fc.name AS category_name
+            FROM food_items fi
+            LEFT JOIN food_categories fc
+            ON fi.food_category_id = fc.id;
+            """;
+
     public static final String SELECT_FOOD_COMPONENT = """
             SELECT fc.id, fc.parent_food_item_id, fc.ingredient_food_item_id, fc.amount_in_grams,
                    fi.name AS component_name

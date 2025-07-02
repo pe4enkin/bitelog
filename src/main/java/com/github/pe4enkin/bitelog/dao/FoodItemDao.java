@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class FoodItemDao {
 
@@ -54,7 +55,7 @@ public class FoodItemDao {
                 int affectedRows = pstmt.executeUpdate();
 
                 if (affectedRows == 0) {
-                    throw new SQLException("Создание food item {} не удалось.", foodItem.getName());
+                    throw new SQLException("Создание food item " + foodItem.getName() + " не удалось.");
                 }
 
                 try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
@@ -106,71 +107,60 @@ public class FoodItemDao {
         }
     }
 
-    public FoodItem findById(long id) throws SQLException {
+    public Optional<FoodItem> findById(long id) throws SQLException {
 
         FoodItem foodItem = null;
-        Connection connection = null;
 
-        try {
-            connection = DatabaseConnectionManager.getConnection();
-            try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.SELECT_FOOD_ITEM)) {
-                pstmt.setLong(1, id);
-                try (ResultSet rs = pstmt.executeQuery()) {
-                    if (rs.next()) {
-                        FoodCategory foodCategory = null;
-                        if (rs.getObject("category_id") != null) {
-                            foodCategory = new FoodCategory(rs.getLong("category_id"), rs.getString("category_name"));
-                        }
-                        foodItem = new FoodItem.Builder()
-                                .setId(rs.getLong("id"))
-                                .setName(rs.getString("name"))
-                                .setCaloriesPer100g(rs.getDouble("calories_per_100g"))
-                                .setServingSizeInGrams(rs.getDouble("serving_size_in_grams"))
-                                .setUnit(Unit.valueOf(rs.getString("unit")))
-                                .setProteinsPer100g(rs.getDouble("proteins_per_100g"))
-                                .setFatsPer100g(rs.getDouble("fats_per_100g"))
-                                .setCarbsPer100g(rs.getDouble("carbs_per_100g"))
-                                .setComposite(rs.getInt("is_composite") == 1)
-                                .setFoodCategory(foodCategory)
-                                .setComponents(null)
-                                .build();
+        try (Connection connection = DatabaseConnectionManager.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SqlQueries.SELECT_FOOD_ITEM)) {
+            pstmt.setLong(1, id);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    FoodCategory foodCategory = null;
+                    if (rs.getObject("category_id") != null) {
+                        foodCategory = new FoodCategory(rs.getLong("category_id"), rs.getString("category_name"));
+                    }
+                    foodItem = new FoodItem.Builder()
+                            .setId(rs.getLong("id"))
+                            .setName(rs.getString("name"))
+                            .setCaloriesPer100g(rs.getDouble("calories_per_100g"))
+                            .setServingSizeInGrams(rs.getDouble("serving_size_in_grams"))
+                            .setUnit(Unit.valueOf(rs.getString("unit")))
+                            .setProteinsPer100g(rs.getDouble("proteins_per_100g"))
+                            .setFatsPer100g(rs.getDouble("fats_per_100g"))
+                            .setCarbsPer100g(rs.getDouble("carbs_per_100g"))
+                            .setComposite(rs.getInt("is_composite") == 1)
+                            .setFoodCategory(foodCategory)
+                            .setComponents(null)
+                            .build();
 
-                        if (foodItem.isComposite()) {
-                            List<FoodComponent> components = new ArrayList<>();
-                            try (PreparedStatement pstmtComponents = connection.prepareStatement(SqlQueries.SELECT_FOOD_COMPONENT)) {
-                                pstmtComponents.setLong(1, foodItem.getId());
-                                try (ResultSet rsComponents = pstmtComponents.executeQuery()) {
-                                    while (rsComponents.next()) {
-                                        components.add(new FoodComponent(
-                                                rsComponents.getLong("id"),
-                                                rsComponents.getLong("parent_food_item_id"),
-                                                rsComponents.getLong("ingredient_food_item_id"),
-                                                rsComponents.getDouble("amount_in_grams")
-                                        ));
-                                    }
+                    if (foodItem.isComposite()) {
+                        List<FoodComponent> components = new ArrayList<>();
+                        try (PreparedStatement pstmtComponents = connection.prepareStatement(SqlQueries.SELECT_FOOD_COMPONENT)) {
+                            pstmtComponents.setLong(1, foodItem.getId());
+                            try (ResultSet rsComponents = pstmtComponents.executeQuery()) {
+                                while (rsComponents.next()) {
+                                    components.add(new FoodComponent(
+                                            rsComponents.getLong("id"),
+                                            rsComponents.getLong("parent_food_item_id"),
+                                            rsComponents.getLong("ingredient_food_item_id"),
+                                            rsComponents.getDouble("amount_in_grams")
+                                    ));
                                 }
                             }
-                            foodItem.setComponents(components.isEmpty() ? null : components);
                         }
-                        LOGGER.info("Найден food item {}", foodItem.getName());
-                    } else {
-                        LOGGER.info("food item c ID {} не найден.", id);
+                        foodItem.setComponents(components.isEmpty() ? null : components);
                     }
+                    LOGGER.info("Найден food item {}", foodItem.getName());
+                } else {
+                    LOGGER.info("food item c ID {} не найден.", id);
                 }
             }
         } catch (SQLException e) {
-            LOGGER.error("Ошибка SQL при поиске FoodItem с ID {}", id, e);
+            LOGGER.error("Ошибка при поиске FoodItem с ID {}", id, e);
             throw e;
-        } finally {
-            if (connection != null) {
-                try {
-                    connection.close();
-                } catch (SQLException closeEx) {
-                    LOGGER.error("Ошибка закрытия соединения после поиска food item", closeEx);
-                }
-            }
         }
-        return foodItem;
+        return Optional.ofNullable(foodItem);
     }
 
     public boolean update(FoodItem foodItem) throws SQLException {
@@ -205,7 +195,10 @@ public class FoodItemDao {
             try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.DELETE_FOOD_COMPONENT)) {
                 pstmt.setLong(1, foodItem.getId());
                 pstmt.executeUpdate();
-                LOGGER.info("Удаление существующих компонентов для food item c ID {}", foodItem.getId());
+                int deletedComponents = pstmt.executeUpdate();
+                if (deletedComponents > 0) {
+                    LOGGER.info("Удалено {} существующих компонентов для food item c ID {}", deletedComponents, foodItem.getId());
+                }
             }
 
             if (foodItem.isComposite() && foodItem.getComponents() != null && !foodItem.getComponents().isEmpty()) {
@@ -288,6 +281,61 @@ public class FoodItemDao {
                 }
             }
         }
+    }
+
+    public List<FoodItem> findAll(boolean loadComponents) throws SQLException {
+
+        List<FoodItem> foodItems = new ArrayList<>();
+
+        try (Connection connection = DatabaseConnectionManager.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SqlQueries.SELECT_ALL_FOOD_ITEMS);
+             ResultSet rs = pstmt.executeQuery()) {
+
+            while (rs.next()) {
+                FoodCategory foodCategory = null;
+                if (rs.getObject("category_id") != null) {
+                    foodCategory = new FoodCategory(rs.getLong("category_id"), rs.getString("category_name"));
+                }
+
+                FoodItem foodItem = new FoodItem.Builder()
+                        .setId(rs.getLong("id"))
+                        .setName(rs.getString("name"))
+                        .setCaloriesPer100g(rs.getDouble("calories_per_100g"))
+                        .setServingSizeInGrams(rs.getDouble("serving_size_in_grams"))
+                        .setUnit(Unit.valueOf(rs.getString("unit")))
+                        .setProteinsPer100g(rs.getDouble("proteins_per_100g"))
+                        .setFatsPer100g(rs.getDouble("fats_per_100g"))
+                        .setCarbsPer100g(rs.getDouble("carbs_per_100g"))
+                        .setComposite(rs.getInt("is_composite") == 1)
+                        .setFoodCategory(foodCategory)
+                        .setComponents(null)
+                        .build();
+
+                if (loadComponents && foodItem.isComposite()) {
+                    List<FoodComponent> components = new ArrayList<>();
+                    try (PreparedStatement pstmtComponents = connection.prepareStatement(SqlQueries.SELECT_FOOD_COMPONENT)) {
+                        pstmtComponents.setLong(1, foodItem.getId());
+                        try (ResultSet rsComponents = pstmtComponents.executeQuery()) {
+                            while (rsComponents.next()) {
+                                components.add(new FoodComponent(
+                                        rsComponents.getLong("id"),
+                                        rsComponents.getLong("parent_food_item_id"),
+                                        rsComponents.getLong("ingredient_food_item_id"),
+                                        rsComponents.getDouble("amount_in_grams")
+                                ));
+                            }
+                        }
+                    }
+                    foodItem.setComponents(components.isEmpty() ? null : components);
+                }
+                foodItems.add(foodItem);
+            }
+            LOGGER.info("Получено {} food items из БД.", foodItems.size());
+        } catch (SQLException e) {
+            LOGGER.error("Ошибка получения всех food items из БД.", e);
+            throw e;
+        }
+        return foodItems;
     }
 
 }
