@@ -15,7 +15,6 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 public class MainApp extends Application {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(MainApp.class);
     private AppState appState;
     private DiaryService diaryService;

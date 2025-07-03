@@ -15,11 +15,9 @@ import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class DatabaseConnectionManagerTest {
-
+class DatabaseConnectionManagerTest {
     @TempDir
     Path tempDir;
-
     private String originalDbFilePath;
     private String testDbFilePath;
 

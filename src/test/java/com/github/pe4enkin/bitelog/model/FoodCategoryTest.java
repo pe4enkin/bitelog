@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class FoodCategoryTest {
+class FoodCategoryTest {
 
     @Test
     @DisplayName("Проверка equals и hashCode при равенстве ID")

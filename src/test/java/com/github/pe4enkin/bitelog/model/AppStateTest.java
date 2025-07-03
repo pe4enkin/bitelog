@@ -8,8 +8,7 @@ import java.time.LocalDate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class AppStateTest {
-
+class AppStateTest {
     private AppState appState;
 
     @BeforeEach

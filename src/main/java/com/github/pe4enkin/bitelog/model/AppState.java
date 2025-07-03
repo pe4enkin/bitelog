@@ -6,7 +6,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import java.time.LocalDate;
 
 public class AppState {
-
     private final ObjectProperty<LocalDate> currentWorkingDate = new SimpleObjectProperty<>();
 
     public AppState () {

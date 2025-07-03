@@ -24,13 +24,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-public class MainViewControllerTest extends ApplicationTest {
-
+class MainViewControllerTest extends ApplicationTest {
     private MainViewController controller;
     private AppState appState;
     @Mock
     private DiaryService diaryService;
-
     private DatePicker datePicker;
 
     @Override

@@ -15,14 +15,12 @@ import java.util.List;
 import java.util.Optional;
 
 public class FoodItemDao {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(FoodItemDao.class);
 
     public FoodItemDao() {
     }
 
     public void createTables() throws SQLException {
-
         try (Connection connection = DatabaseConnectionManager.getConnection();
              Statement stmt = connection.createStatement()) {
             stmt.execute(SqlQueries.CREATE_FOOD_ITEMS_TABLE);
@@ -35,7 +33,6 @@ public class FoodItemDao {
     }
 
     public FoodItem save(FoodItem foodItem) throws SQLException {
-
         Connection connection = null;
         try {
             connection = DatabaseConnectionManager.getConnection();
@@ -53,7 +50,6 @@ public class FoodItemDao {
                 pstmt.setObject(9, foodItem.getFoodCategory() != null ? foodItem.getFoodCategory().getId() : null);
 
                 int affectedRows = pstmt.executeUpdate();
-
                 if (affectedRows == 0) {
                     throw new SQLException("Создание food item " + foodItem.getName() + " не удалось.");
                 }
@@ -61,7 +57,7 @@ public class FoodItemDao {
                 try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
                         foodItem.setId(generatedKeys.getLong(1));
-                        LOGGER.info("FoodItem {} saved with ID {}", foodItem.getName(), foodItem.getId());
+                        LOGGER.info("FoodItem {} сохранен с ID {}", foodItem.getName(), foodItem.getId());
                     } else {
                         throw new SQLException("Создание food item не удалось, ID не было получено.");
                     }
@@ -101,14 +97,13 @@ public class FoodItemDao {
                     connection.setAutoCommit(true);
                     connection.close();
                 } catch (SQLException closeEx) {
-                    LOGGER.error("Ошибка закрытия соединения после сохранения food item", closeEx);
+                    LOGGER.error("Ошибка закрытия соединения после сохранения food item.", closeEx);
                 }
             }
         }
     }
 
     public Optional<FoodItem> findById(long id) throws SQLException {
-
         FoodItem foodItem = null;
 
         try (Connection connection = DatabaseConnectionManager.getConnection();
@@ -164,7 +159,6 @@ public class FoodItemDao {
     }
 
     public boolean update(FoodItem foodItem) throws SQLException {
-
         Connection connection = null;
 
         try {
@@ -194,7 +188,6 @@ public class FoodItemDao {
 
             try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.DELETE_FOOD_COMPONENT)) {
                 pstmt.setLong(1, foodItem.getId());
-                pstmt.executeUpdate();
                 int deletedComponents = pstmt.executeUpdate();
                 if (deletedComponents > 0) {
                     LOGGER.info("Удалено {} существующих компонентов для food item c ID {}", deletedComponents, foodItem.getId());
@@ -234,14 +227,13 @@ public class FoodItemDao {
                     connection.setAutoCommit(true);
                     connection.close();
                 } catch (SQLException closeEx) {
-                    LOGGER.error("Ошибка закрытия соединения после обновления food item", closeEx);
+                    LOGGER.error("Ошибка закрытия соединения после обновления food item.", closeEx);
                 }
             }
         }
     }
 
     public boolean delete(long id) throws SQLException {
-
         Connection connection = null;
 
         try {
@@ -277,14 +269,13 @@ public class FoodItemDao {
                     connection.setAutoCommit(true);
                     connection.close();
                 } catch (SQLException closeEx) {
-                    LOGGER.error("Ошибка закрытия соединения после удаления food item", closeEx);
+                    LOGGER.error("Ошибка закрытия соединения после удаления food item.", closeEx);
                 }
             }
         }
     }
 
     public List<FoodItem> findAll(boolean loadComponents) throws SQLException {
-
         List<FoodItem> foodItems = new ArrayList<>();
 
         try (Connection connection = DatabaseConnectionManager.getConnection();
@@ -337,5 +328,4 @@ public class FoodItemDao {
         }
         return foodItems;
     }
-
 }

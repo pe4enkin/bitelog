@@ -11,16 +11,13 @@ import java.time.LocalDate;
 public class MainViewController {
     @FXML
     private DatePicker datePicker;
-
     @FXML
     private Button previousDayButton;
-
     @FXML
     private Button todayButton;
-
     @FXML
-    private Button nextDayButton;
 
+    private Button nextDayButton;
     private final AppState appState;
     private final DiaryService diaryService;
 

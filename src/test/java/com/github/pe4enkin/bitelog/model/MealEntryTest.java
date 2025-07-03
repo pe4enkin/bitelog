@@ -9,7 +9,7 @@ import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class MealEntryTest {
+class MealEntryTest {
 
     @Test
     @DisplayName("Проверка equals и hashCode при равенстве ID")
