@@ -6,6 +6,7 @@ import com.github.pe4enkin.bitelog.sql.SqlQueries;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,12 +14,14 @@ import java.util.Optional;
 
 public class FoodCategoryDao {
     private static final Logger LOGGER = LoggerFactory.getLogger(FoodCategoryDao.class);
+    private final DataSource dataSource;
 
-    public FoodCategoryDao() {
+    public FoodCategoryDao(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     public void createTables() throws SQLException {
-        try (Connection connection = DatabaseConnectionManager.getConnection();
+        try (Connection connection = DataSource.getConnection();
              Statement stmt = connection.createStatement()) {
             stmt.execute(SqlQueries.CREATE_FOOD_CATEGORIES_TABLE);
             LOGGER.info("Таблица food_categories успешно создана (или уже существовала)");
@@ -31,7 +34,7 @@ public class FoodCategoryDao {
     public FoodCategory save(FoodCategory foodCategory) throws SQLException {
         Connection connection = null;
         try {
-            connection = DatabaseConnectionManager.getConnection();
+            connection = DataSource.getConnection();
             connection.setAutoCommit(false);
 
             try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.INSERT_FOOD_CATEGORY, Statement.RETURN_GENERATED_KEYS)) {
@@ -51,7 +54,6 @@ public class FoodCategoryDao {
                     }
                 }
             }
-
             connection.commit();
             return foodCategory;
         } catch (SQLException e) {

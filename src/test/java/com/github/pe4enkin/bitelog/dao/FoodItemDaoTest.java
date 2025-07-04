@@ -15,7 +15,7 @@ class FoodItemDaoTest {
 
     @BeforeEach
     void setUp() throws SQLException {
-        DatabaseConnectionManager.configureForTesting(":memory:");
+        DatabaseConnectionManager.configureForTesting("file:memdb1?mode=memory&cache=shared");
         foodItemDao = new FoodItemDao();
         foodItemDao.createTables();
     }
