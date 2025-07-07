@@ -65,7 +65,7 @@ public class DatabaseConnectionManager {
     }
 
     public static void configureForTesting(String testFilePath) {
-        LOGGER.debug("Настройка пути к базе данных для целей тестрирования: {}", testFilePath);
+        LOGGER.info("Настройка пути к базе данных для целей тестрирования: {}", testFilePath);
         dbFilePath = testFilePath;
         dataSourceInstance = null;
     }

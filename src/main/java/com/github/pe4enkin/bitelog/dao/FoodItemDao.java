@@ -9,6 +9,7 @@ import com.github.pe4enkin.bitelog.sql.SqlQueries;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,12 +17,14 @@ import java.util.Optional;
 
 public class FoodItemDao {
     private static final Logger LOGGER = LoggerFactory.getLogger(FoodItemDao.class);
+    private final DataSource dataSource;
 
-    public FoodItemDao() {
+    public FoodItemDao(DataSource dataSource) {
+        this.dataSource = dataSource;
     }
 
     public void createTables() throws SQLException {
-        try (Connection connection = DatabaseConnectionManager.getConnection();
+        try (Connection connection = dataSource.getConnection();
              Statement stmt = connection.createStatement()) {
             stmt.execute(SqlQueries.CREATE_FOOD_ITEMS_TABLE);
             stmt.execute(SqlQueries.CREATE_FOOD_COMPONENTS_TABLE);
@@ -35,7 +38,7 @@ public class FoodItemDao {
     public FoodItem save(FoodItem foodItem) throws SQLException {
         Connection connection = null;
         try {
-            connection = DatabaseConnectionManager.getConnection();
+            connection = dataSource.getConnection();
             connection.setAutoCommit(false);
 
             try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.INSERT_FOOD_ITEM, Statement.RETURN_GENERATED_KEYS)) {
@@ -106,7 +109,7 @@ public class FoodItemDao {
     public Optional<FoodItem> findById(long id) throws SQLException {
         FoodItem foodItem = null;
 
-        try (Connection connection = DatabaseConnectionManager.getConnection();
+        try (Connection connection = dataSource.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(SqlQueries.SELECT_FOOD_ITEM)) {
             pstmt.setLong(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -162,7 +165,7 @@ public class FoodItemDao {
         Connection connection = null;
 
         try {
-            connection = DatabaseConnectionManager.getConnection();
+            connection = dataSource.getConnection();
             connection.setAutoCommit(false);
 
             try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.UPDATE_FOOD_ITEM)) {
@@ -237,20 +240,20 @@ public class FoodItemDao {
         Connection connection = null;
 
         try {
-            connection = DatabaseConnectionManager.getConnection();
+            connection = dataSource.getConnection();
             connection.setAutoCommit(false);
 
             try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.DELETE_FOOD_ITEM)) {
                 pstmt.setLong(1, id);
                 int affectedRows = pstmt.executeUpdate();
-                if (affectedRows > 0) {
-                    LOGGER.info("food item c ID {} успешно удален.", id);
-                    connection.commit();
-                    return true;
-                } else {
+                if (affectedRows == 0) {
                     connection.rollback();
                     LOGGER.warn("food item c ID {} для удаления не найден.", id);
                     return false;
+                } else {
+                    LOGGER.info("food item c ID {} успешно удален.", id);
+                    connection.commit();
+                    return true;
                 }
             }
         } catch (SQLException e) {
@@ -278,7 +281,7 @@ public class FoodItemDao {
     public List<FoodItem> findAll(boolean loadComponents) throws SQLException {
         List<FoodItem> foodItems = new ArrayList<>();
 
-        try (Connection connection = DatabaseConnectionManager.getConnection();
+        try (Connection connection = dataSource.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(SqlQueries.SELECT_ALL_FOOD_ITEMS);
              ResultSet rs = pstmt.executeQuery()) {
 

@@ -1,6 +1,5 @@
 package com.github.pe4enkin.bitelog.dao;
 
-import com.github.pe4enkin.bitelog.db.DatabaseConnectionManager;
 import com.github.pe4enkin.bitelog.model.FoodCategory;
 import com.github.pe4enkin.bitelog.sql.SqlQueries;
 import org.slf4j.Logger;
@@ -21,7 +20,7 @@ public class FoodCategoryDao {
     }
 
     public void createTables() throws SQLException {
-        try (Connection connection = DataSource.getConnection();
+        try (Connection connection = dataSource.getConnection();
              Statement stmt = connection.createStatement()) {
             stmt.execute(SqlQueries.CREATE_FOOD_CATEGORIES_TABLE);
             LOGGER.info("Таблица food_categories успешно создана (или уже существовала)");
@@ -32,56 +31,33 @@ public class FoodCategoryDao {
     }
 
     public FoodCategory save(FoodCategory foodCategory) throws SQLException {
-        Connection connection = null;
-        try {
-            connection = DataSource.getConnection();
-            connection.setAutoCommit(false);
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SqlQueries.INSERT_FOOD_CATEGORY, Statement.RETURN_GENERATED_KEYS)) {
+            pstmt.setString(1, foodCategory.getName());
 
-            try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.INSERT_FOOD_CATEGORY, Statement.RETURN_GENERATED_KEYS)) {
-                pstmt.setString(1, foodCategory.getName());
+            int affectedRows = pstmt.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("Создание food category " + foodCategory.getName() + " не удалось.");
+            }
 
-                int affectedRows = pstmt.executeUpdate();
-                if (affectedRows == 0) {
-                    throw new SQLException("Создание food category " + foodCategory.getName() + " не удалось.");
-                }
-
-                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        foodCategory.setId(generatedKeys.getLong(1));
-                        LOGGER.info("FoodCategory {} сохранен {}", foodCategory.getName(), foodCategory.getId());
-                    } else {
-                        throw new SQLException("Создание food category не удалось, ID не было получено.");
-                    }
+            try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    foodCategory.setId(generatedKeys.getLong(1));
+                    LOGGER.info("FoodCategory {} сохранен {}", foodCategory.getName(), foodCategory.getId());
+                } else {
+                    throw new SQLException("Создание food category не удалось, ID не было получено.");
                 }
             }
-            connection.commit();
             return foodCategory;
         } catch (SQLException e) {
             LOGGER.error("Ошибка сохранения FoodCategory {}. Откат транзакции.", foodCategory.getName(), e);
-            if (connection != null) {
-                try {
-                    connection.rollback();
-                } catch (SQLException rollbackEx) {
-                    LOGGER.error("Ошибка отката транзакции для сохранения FoodCategory {}", foodCategory.getName(), rollbackEx);
-                }
-            }
             throw e;
-        } finally {
-            if (connection != null) {
-                try {
-                    connection.setAutoCommit(true);
-                    connection.close();
-                } catch (SQLException closeEx) {
-                    LOGGER.error("Ошибка закрытия соединения после сохранения food category", closeEx);
-                }
-            }
         }
     }
 
     public Optional<FoodCategory> findById(long id) throws SQLException {
         FoodCategory foodCategory = null;
-
-        try (Connection connection = DatabaseConnectionManager.getConnection();
+        try (Connection connection = dataSource.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(SqlQueries.SELECT_FOOD_CATEGORY)) {
             pstmt.setLong(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -103,94 +79,47 @@ public class FoodCategoryDao {
     }
 
     public boolean update(FoodCategory foodCategory) throws SQLException {
-        Connection connection = null;
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SqlQueries.UPDATE_FOOD_CATEGORY)) {
+            pstmt.setString(1, foodCategory.getName());
+            pstmt.setLong(2, foodCategory.getId());
 
-        try {
-            connection = DatabaseConnectionManager.getConnection();
-            connection.setAutoCommit(false);
-
-            try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.UPDATE_FOOD_CATEGORY)) {
-                pstmt.setString(1, foodCategory.getName());
-                pstmt.setLong(2, foodCategory.getId());
-
-                int affectedRows = pstmt.executeUpdate();
-                if (affectedRows == 0) {
-                    connection.rollback();
-                    LOGGER.warn("food category c ID {} для обновления не найден.", foodCategory.getId());
-                    return false;
-                }
-                LOGGER.info("food category {} c ID {} обновлен.", foodCategory.getName(), foodCategory.getId());
+            int affectedRows = pstmt.executeUpdate();
+            if (affectedRows == 0) {
+                LOGGER.warn("food category c ID {} для обновления не найден.", foodCategory.getId());
+                return false;
             }
-            connection.commit();
+            LOGGER.info("food category {} c ID {} обновлен.", foodCategory.getName(), foodCategory.getId());
             return true;
         } catch (SQLException e) {
             LOGGER.error("Ошибка обновления FoodCategory {}. Откат транзакции.", foodCategory.getName(), e);
-            if (connection != null) {
-                try {
-                    connection.rollback();
-                } catch (SQLException rollbackEx) {
-                    LOGGER.error("Ошибка отката транзакции для обновления FoodCategory {}", foodCategory.getName(), rollbackEx);
-                }
-            }
             throw e;
-        } finally {
-            if (connection != null) {
-                try {
-                    connection.setAutoCommit(true);
-                    connection.close();
-                } catch (SQLException closeEx) {
-                    LOGGER.error("Ошибка закрытия соединения после обновления food category", closeEx);
-                }
-            }
         }
     }
 
     public boolean delete(long id) throws SQLException {
-        Connection connection = null;
 
-        try {
-            connection = DatabaseConnectionManager.getConnection();
-            connection.setAutoCommit(false);
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SqlQueries.DELETE_FOOD_CATEGORY)) {
+            pstmt.setLong(1, id);
 
-            try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.DELETE_FOOD_CATEGORY)) {
-                pstmt.setLong(1, id);
-                int affectedRows = pstmt.executeUpdate();
-                if (affectedRows > 0) {
-                    LOGGER.info("food category c ID {} успешно удален.", id);
-                    connection.commit();
-                    return true;
-                } else {
-                    connection.rollback();
-                    LOGGER.warn("food category c ID {} для удаления не найден.", id);
-                    return false;
-                }
+            int affectedRows = pstmt.executeUpdate();
+            if (affectedRows == 0) {
+                LOGGER.warn("food category c ID {} для удаления не найден.", id);
+                return false;
+            } else {
+                LOGGER.info("food category c ID {} успешно удален.", id);
+                return true;
             }
         } catch (SQLException e) {
             LOGGER.error("Ошибка удаления FoodCategory с ID {}. Откат транзакции.", id, e);
-            if (connection != null) {
-                try {
-                    connection.rollback();
-                } catch (SQLException rollbackEx) {
-                    LOGGER.error("Ошибка отката транзакции для удаления FoodCategory с ID {}", id, rollbackEx);
-                }
-            }
             throw e;
-        } finally {
-            if (connection != null) {
-                try {
-                    connection.setAutoCommit(true);
-                    connection.close();
-                } catch (SQLException closeEx) {
-                    LOGGER.error("Ошибка закрытия соединения после удаления food category.", closeEx);
-                }
-            }
         }
     }
 
     public List<FoodCategory> findAll() throws SQLException {
         List<FoodCategory> foodCategories = new ArrayList<>();
-
-        try (Connection connection = DatabaseConnectionManager.getConnection();
+        try (Connection connection = dataSource.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(SqlQueries.SELECT_ALL_FOOD_CATEGORY);
              ResultSet rs = pstmt.executeQuery()) {
             while (rs.next()) {
