@@ -9,6 +9,10 @@ public class FoodCategory {
         this.name = name;
     }
 
+    public FoodCategory(String name) {
+        this.name = name;
+    }
+
     public long getId() {
         return id;
     }

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import javax.sql.DataSource;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class DatabaseConnectionManagerTest {
     @TempDir
     Path tempDir;
-    private String originalDbFilePath;
+
     private String testDbFilePath;
 
     @BeforeEach
@@ -31,6 +32,7 @@ class DatabaseConnectionManagerTest {
     @AfterEach
     void tearDown() {
         DatabaseConnectionManager.resetToDefault();
+        DatabaseConnectionManager.closeDataSource();
     }
 
     @Test
@@ -42,10 +44,13 @@ class DatabaseConnectionManagerTest {
         assertFalse(parentDir.exists(), "Директории data не должно существовать перед тестом.");
         assertFalse(dbFile.exists(), "Файла базы данных не должно существовать перед тестом.");
 
-        try (Connection connection = DatabaseConnectionManager.getConnection()) {
+        DataSource dataSource = DatabaseConnectionManager.getDataSource();
+        assertNotNull(dataSource);
+        assertTrue(parentDir.exists(), "Директория data должна создаться.");
+        assertTrue(dbFile.exists(), "Файл базы данных должен быть создан.");
+
+        try (Connection connection = dataSource.getConnection()) {
             assertNotNull(connection);
-            assertTrue(parentDir.exists(), "Директория data должна создаться.");
-            assertTrue(dbFile.exists(), "Файл базы данных должен быть создан.");
         }
     }
 
@@ -59,21 +64,44 @@ class DatabaseConnectionManagerTest {
         Files.createFile(dbFile.toPath());
         assertTrue(dbFile.exists(), "Файл базы данных должен существовать перед тестом.");
 
-        try (Connection connection = DatabaseConnectionManager.getConnection()) {
+        DataSource dataSource = DatabaseConnectionManager.getDataSource();
+        assertNotNull(dataSource, "DataSource не должен быть null.");
+
+        try (Connection connection = dataSource.getConnection()) {
             assertNotNull(connection);
+            assertFalse(connection.isClosed(), "Соединение не должно быть закрыто.");
         }
     }
+
     @Test
     @DisplayName("SQLException при ошибке создании директории data.")
-    void shouldThrowSQLExceptionIfDirectoryCreationFails() throws IOException{
+    void shouldThrowSQLExceptionIfDirectoryCreationFails() throws IOException {
         Path blockingPath = tempDir.resolve("this_is_a_file_not_a_directory");
         Files.createFile(blockingPath);
         String inaccessiblePath = blockingPath.resolve("sub_dir").resolve("test_db.db").toString();
         DatabaseConnectionManager.configureForTesting(inaccessiblePath);
+
         SQLException thrown = assertThrows(SQLException.class, () -> {
-            DatabaseConnectionManager.getConnection();
-        }, "Должно быть SQLException при ошибке созлании директории data");
+            DatabaseConnectionManager.getDataSource();
+        }, "Должно быть SQLException при ошибке создании директории data");
         assertTrue(thrown.getMessage().contains("Не удалось создать директорию для файла БД"),
                 "Сообщение об ошибке должно указывать на проблему с созданием директории.");
+    }
+
+    @Test
+    @DisplayName("Должен сбросить DataSource к значению по умолчанию и закрыть старый.")
+    void shouldResetToDefaultAndCloseOldDataSource() throws SQLException {
+        DataSource initialDataSource = DatabaseConnectionManager.getDataSource();
+        assertNotNull(initialDataSource);
+
+        DatabaseConnectionManager.resetToDefault();
+
+        DataSource newDataSource = DatabaseConnectionManager.getDataSource();
+        assertNotNull(newDataSource);
+        assertNotSame(initialDataSource, newDataSource, "После сброса DataSource должен быть новым экземпляром.");
+
+        try (Connection connection = newDataSource.getConnection()) {
+            assertNotNull(connection);
         }
+    }
 }

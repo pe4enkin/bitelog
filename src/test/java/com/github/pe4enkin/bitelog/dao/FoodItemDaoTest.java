@@ -8,15 +8,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import javax.sql.DataSource;
 import java.sql.SQLException;
 
 class FoodItemDaoTest {
     private FoodItemDao foodItemDao;
+    private DataSource testDataSource;
 
     @BeforeEach
     void setUp() throws SQLException {
         DatabaseConnectionManager.configureForTesting("file:memdb1?mode=memory&cache=shared");
-        foodItemDao = new FoodItemDao();
+        foodItemDao = new FoodItemDao(testDataSource);
         foodItemDao.createTables();
     }
 

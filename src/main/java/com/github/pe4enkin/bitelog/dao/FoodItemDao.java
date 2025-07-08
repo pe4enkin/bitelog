@@ -1,6 +1,5 @@
 package com.github.pe4enkin.bitelog.dao;
 
-import com.github.pe4enkin.bitelog.db.DatabaseConnectionManager;
 import com.github.pe4enkin.bitelog.model.FoodCategory;
 import com.github.pe4enkin.bitelog.model.FoodComponent;
 import com.github.pe4enkin.bitelog.model.FoodItem;

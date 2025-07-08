@@ -90,6 +90,13 @@ public class SqlQueries {
             FROM food_categories
             """;
 
+    public static final String SELECT_TABLE_NAME = """
+            SELECT name
+            FROM sqlite_master
+            WHERE type = 'table'
+            AND name = ?
+            """;
+
     public static final String UPDATE_FOOD_ITEM = """
             UPDATE food_items SET
                 name = ?,
@@ -123,5 +130,9 @@ public class SqlQueries {
     public static final String DELETE_FOOD_COMPONENT = """
             DELETE FROM food_components
             WHERE parent_food_item_id = ?
+            """;
+
+    public static final String DROP_TABLE_FOOD_CATEGORIES = """
+            DROP TABLE IF EXISTS food_categories
             """;
 }

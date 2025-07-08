@@ -11,21 +11,24 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
-import java.sql.SQLException;
 
 public class MainApp extends Application {
     private static final Logger LOGGER = LoggerFactory.getLogger(MainApp.class);
     private AppState appState;
     private DiaryService diaryService;
-    private Connection dbConnection;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+        DataSource dataSource;
+
         try {
-            dbConnection = DatabaseConnectionManager.getConnection();
-            LOGGER.info("Успешно подключено к базе данных. Приложение готово к запуску UI.");
-            diaryService = new DiaryService();
+            dataSource = DatabaseConnectionManager.getDataSource();
+            try (Connection testConnection = dataSource.getConnection()) {
+                LOGGER.info("Успешно подключено к базе данных. Приложение готово к запуску UI.");
+            }
+            diaryService = new DiaryService(dataSource);
         } catch (Exception e) {
             LOGGER.error("Критическая ошибка соединения с базой данных.", e);
             javafx.application.Platform.exit();
@@ -55,14 +58,7 @@ public class MainApp extends Application {
     }
 
     public void stop() throws Exception {
-        if ((dbConnection != null)) {
-            try {
-                dbConnection.close();
-                LOGGER.info("Соединение с базой данных успешно закрыто.");
-            } catch (SQLException e) {
-                LOGGER.error("Ошибка при закрытии соединения с базой данных.", e);
-            }
-        }
+        DatabaseConnectionManager.closeDataSource();
         LOGGER.info("Приложение BiteLog завершает работу.");
         super.stop();
     }

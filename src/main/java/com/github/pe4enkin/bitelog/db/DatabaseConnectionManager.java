@@ -35,9 +35,6 @@ public class DatabaseConnectionManager {
         sqLiteDataSource.setUrl(url);
 
         if (url.contains("mode=memory")) {
-            SQLiteConfig config = new SQLiteConfig();
-            config.setSharedCache(true);
-            sqLiteDataSource.setConfig(config);
             LOGGER.debug("Конфигурация БД memory с общим кэшем: {}", url);
         } else {
             File dbFile = new File(path);
