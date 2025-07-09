@@ -58,7 +58,7 @@ public class FoodCategoryDao {
     public Optional<FoodCategory> findById(long id) throws SQLException {
         FoodCategory foodCategory = null;
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement pstmt = connection.prepareStatement(SqlQueries.SELECT_FOOD_CATEGORY)) {
+             PreparedStatement pstmt = connection.prepareStatement(SqlQueries.SELECT_FOOD_CATEGORY_BY_ID)) {
             pstmt.setLong(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -73,6 +73,29 @@ public class FoodCategoryDao {
             }
         } catch (SQLException e) {
             LOGGER.error("Ошибка при поиске FoodCategory с ID {}", id, e);
+            throw e;
+        }
+        return Optional.ofNullable(foodCategory);
+    }
+
+    public Optional<FoodCategory> findByName(String name) throws SQLException {
+        FoodCategory foodCategory = null;
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SqlQueries.SELECT_FOOD_CATEGORY_BY_NAME)) {
+            pstmt.setString(1, name);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    foodCategory = new FoodCategory(
+                            rs.getLong("id"),
+                            rs.getString("name")
+                    );
+                    LOGGER.info("Найден food category {}", foodCategory.getName());
+                } else {
+                    LOGGER.info("food category c именем {} не найден.", name);
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.error("Ошибка при поиске FoodCategory по имени {}", name, e);
             throw e;
         }
         return Optional.ofNullable(foodCategory);

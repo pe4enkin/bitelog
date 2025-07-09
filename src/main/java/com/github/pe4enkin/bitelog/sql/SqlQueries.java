@@ -4,7 +4,7 @@ public class SqlQueries {
     public static final String CREATE_FOOD_ITEMS_TABLE = """
             CREATE TABLE IF NOT EXISTS food_items (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
+                name TEXT NOT NULL UNIQUE,
                 calories_per_100g REAL NOT NULL,
                 serving_size_in_grams REAL NOT NULL,
                 unit TEXT NOT NULL,
@@ -31,7 +31,7 @@ public class SqlQueries {
     public static final String CREATE_FOOD_CATEGORIES_TABLE = """
             CREATE TABLE IF NOT EXISTS food_categories (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL
+                name TEXT NOT NULL UNIQUE
             )
             """;
 
@@ -51,7 +51,7 @@ public class SqlQueries {
             VALUES (?)
             """;
 
-    public static final String SELECT_FOOD_ITEM = """
+    public static final String SELECT_FOOD_ITEM_BY_ID = """
             SELECT fi.id, fi.name, fi.calories_per_100g, fi.serving_size_in_grams, fi.unit,
                    fi.proteins_per_100g, fi.fats_per_100g, fi.carbs_per_100g, fi.is_composite,
                    fc.id AS category_id, fc.name AS category_name
@@ -59,6 +59,16 @@ public class SqlQueries {
             LEFT JOIN food_categories fc
             ON fi.food_category_id = fc.id
             WHERE fi.id = ?
+            """;
+
+    public static final String SELECT_FOOD_ITEM_BY_NAME = """
+            SELECT fi.id, fi.name, fi.calories_per_100g, fi.serving_size_in_grams, fi.unit,
+                   fi.proteins_per_100g, fi.fats_per_100g, fi.carbs_per_100g, fi.is_composite,
+                   fc.id AS category_id, fc.name AS category_name
+            FROM food_items fi
+            LEFT JOIN food_categories fc
+            ON fi.food_category_id = fc.id
+            WHERE fi.name = ?
             """;
 
     public static final String SELECT_ALL_FOOD_ITEMS = """
@@ -79,10 +89,16 @@ public class SqlQueries {
             WHERE fc.parent_food_item_id = ?
             """;
 
-    public static final String SELECT_FOOD_CATEGORY = """
+    public static final String SELECT_FOOD_CATEGORY_BY_ID = """
             SELECT id, name
             FROM food_categories
             WHERE id = ?
+            """;
+
+    public static final String SELECT_FOOD_CATEGORY_BY_NAME = """
+            SELECT id, name
+            FROM food_categories
+            WHERE name = ?
             """;
 
     public static final String SELECT_ALL_FOOD_CATEGORY = """
