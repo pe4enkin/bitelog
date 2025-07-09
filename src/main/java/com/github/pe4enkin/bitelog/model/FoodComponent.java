@@ -13,6 +13,12 @@ public class FoodComponent {
         this.amountInGrams = amountInGrams;
     }
 
+    public FoodComponent(long parentFoodItemId, long ingredientFoodItemId, double amountInGrams) {
+        this.parentFoodItemId = parentFoodItemId;
+        this.ingredientFoodItemId = ingredientFoodItemId;
+        this.amountInGrams = amountInGrams;
+    }
+
     public long getId() {
         return id;
     }

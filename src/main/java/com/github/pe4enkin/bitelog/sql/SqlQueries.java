@@ -148,6 +148,14 @@ public class SqlQueries {
             WHERE parent_food_item_id = ?
             """;
 
+    public static final String DROP_TABLE_FOOD_ITEMS = """
+            DROP TABLE IF EXISTS food_items
+            """;
+
+    public static final String DROP_TABLE_FOOD_COMPONENTS = """
+            DROP TABLE IF EXISTS food_components
+            """;
+
     public static final String DROP_TABLE_FOOD_CATEGORIES = """
             DROP TABLE IF EXISTS food_categories
             """;

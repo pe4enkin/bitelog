@@ -57,7 +57,7 @@ public class FoodCategoryDaoTest {
 
         assertNotNull(savedCategory);
         assertTrue(savedCategory.getId() > 0, "ID сохраненного FoodCategory должен быть сгенерирован и быть больше 0.");
-        assertEquals("Мясо", savedCategory.getName(), "Имя FoodCategory должно совпадать.");
+        assertEquals("Мясо", savedCategory.getName(), "Имя сохраненного FoodCategory должно совпадать.");
     }
 
     @Test
