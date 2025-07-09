@@ -123,7 +123,7 @@ public class FoodItemDaoTest {
                 .setComponents(null)
                 .build();
 
-        FoodComponent component1 = new FoodComponent()
+        FoodComponent component1 = new FoodComponent(flour.getId(), )
 
         FoodItem item = new FoodItem.Builder()
                 .setName("Тесто")

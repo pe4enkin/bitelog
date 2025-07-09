@@ -2,19 +2,16 @@ package com.github.pe4enkin.bitelog.model;
 
 public class FoodComponent {
     private long id;
-    private long parentFoodItemId;
     private long ingredientFoodItemId;
     private double amountInGrams;
 
-    public FoodComponent(long id, long parentFoodItemId, long ingredientFoodItemId, double amountInGrams) {
+    public FoodComponent(long id, long ingredientFoodItemId, double amountInGrams) {
         this.id = id;
-        this.parentFoodItemId = parentFoodItemId;
         this.ingredientFoodItemId = ingredientFoodItemId;
         this.amountInGrams = amountInGrams;
     }
 
-    public FoodComponent(long parentFoodItemId, long ingredientFoodItemId, double amountInGrams) {
-        this.parentFoodItemId = parentFoodItemId;
+    public FoodComponent(long ingredientFoodItemId, double amountInGrams) {
         this.ingredientFoodItemId = ingredientFoodItemId;
         this.amountInGrams = amountInGrams;
     }
@@ -25,15 +22,6 @@ public class FoodComponent {
 
     public FoodComponent setId(long id) {
         this.id = id;
-        return this;
-    }
-
-    public long getParentFoodItemId() {
-        return parentFoodItemId;
-    }
-
-    public FoodComponent setParentFoodItemId(long parentFoodItemId) {
-        this.parentFoodItemId = parentFoodItemId;
         return this;
     }
 
@@ -71,7 +59,6 @@ public class FoodComponent {
     public String toString() {
         return "FoodComponent{" +
                 "id=" + id +
-                ", parentFoodItemId=" + parentFoodItemId +
                 ", ingredientFoodItemId=" + ingredientFoodItemId +
                 ", amountInGrams=" + amountInGrams +
                 '}';

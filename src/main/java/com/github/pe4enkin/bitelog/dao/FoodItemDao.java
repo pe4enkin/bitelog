@@ -149,7 +149,6 @@ public class FoodItemDao {
                                 while (rsComponents.next()) {
                                     components.add(new FoodComponent(
                                             rsComponents.getLong("id"),
-                                            rsComponents.getLong("parent_food_item_id"),
                                             rsComponents.getLong("ingredient_food_item_id"),
                                             rsComponents.getDouble("amount_in_grams")
                                     ));
@@ -204,7 +203,6 @@ public class FoodItemDao {
                                 while (rsComponents.next()) {
                                     components.add(new FoodComponent(
                                             rsComponents.getLong("id"),
-                                            rsComponents.getLong("parent_food_item_id"),
                                             rsComponents.getLong("ingredient_food_item_id"),
                                             rsComponents.getDouble("amount_in_grams")
                                     ));
@@ -387,7 +385,6 @@ public class FoodItemDao {
                             while (rsComponents.next()) {
                                 components.add(new FoodComponent(
                                         rsComponents.getLong("id"),
-                                        rsComponents.getLong("parent_food_item_id"),
                                         rsComponents.getLong("ingredient_food_item_id"),
                                         rsComponents.getDouble("amount_in_grams")
                                 ));
