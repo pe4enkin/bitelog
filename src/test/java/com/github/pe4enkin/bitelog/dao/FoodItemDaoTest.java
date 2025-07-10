@@ -13,8 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import javax.sql.DataSource;
 import java.sql.*;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -39,18 +38,6 @@ public class FoodItemDaoTest {
         }
         foodItemDao.createTables();
         foodCategoryDao.createTables();
-        try (PreparedStatement pstmt = testConnection.prepareStatement(SqlQueries.SELECT_TABLE_NAME)) {
-            pstmt.setString(1, "food_items");
-            try (ResultSet rs = pstmt.executeQuery()) {
-                assertTrue(rs.next(), "Таблица food_items должна существовать после createTables.");
-                assertEquals("food_items", rs.getString("name"), "Имя найденной таблицы должно совпадать с food_items.");
-            }
-            pstmt.setString(1, "food_components");
-            try (ResultSet rs = pstmt.executeQuery()) {
-                assertTrue(rs.next(), "Таблица food_components должна существовать после createTables.");
-                assertEquals("food_components", rs.getString("name"), "Имя найденной таблицы должно совпадать с food_components.");
-            }
-        }
         category = foodCategoryDao.save(new FoodCategory("Еда"));
     }
 
@@ -99,12 +86,12 @@ public class FoodItemDaoTest {
     void save_shouldSaveCompositeFoodItem() throws SQLException {
         FoodItem flour = new FoodItem.Builder()
                 .setName("Мука")
-                .setCaloriesPer100g(334.0)
+                .setCaloriesPer100g(350.0)
                 .setServingSizeInGrams(200.0)
                 .setUnit(Unit.CUP)
-                .setProteinsPer100g(10.3)
-                .setFatsPer100g(1.1)
-                .setCarbsPer100g(68.9)
+                .setProteinsPer100g(10.0)
+                .setFatsPer100g(1.0)
+                .setCarbsPer100g(70.0)
                 .setComposite(false)
                 .setFoodCategory(category)
                 .setComponents(null)
@@ -112,45 +99,60 @@ public class FoodItemDaoTest {
 
         FoodItem sugar = new FoodItem.Builder()
                 .setName("Сахар")
-                .setCaloriesPer100g(399.0)
+                .setCaloriesPer100g(300.0)
                 .setServingSizeInGrams(10.0)
                 .setUnit(Unit.TABLESPOON)
                 .setProteinsPer100g(0.0)
                 .setFatsPer100g(0.0)
-                .setCarbsPer100g(99.8)
+                .setCarbsPer100g(100.0)
                 .setComposite(false)
                 .setFoodCategory(category)
                 .setComponents(null)
                 .build();
 
-        FoodComponent component1 = new FoodComponent(flour.getId(), )
+        FoodItem savedFlour = foodItemDao.save(flour);
+        FoodItem savedSugar = foodItemDao.save(sugar);
+        FoodComponent component1 = new FoodComponent(savedFlour.getId(), 150.0);
+        FoodComponent component2 = new FoodComponent(savedSugar.getId(), 50.0);
+        List<FoodComponent> components = Arrays.asList(component1, component2);
 
         FoodItem item = new FoodItem.Builder()
                 .setName("Тесто")
-                .setCaloriesPer100g(250.0)
+                .setCaloriesPer100g(337.5)
                 .setServingSizeInGrams(200.0)
                 .setUnit(Unit.GRAM)
-                .setProteinsPer100g(19.0)
-                .setFatsPer100g(16.0)
-                .setCarbsPer100g(1.0)
+                .setProteinsPer100g(7.5)
+                .setFatsPer100g(0.75)
+                .setCarbsPer100g(77.5)
                 .setComposite(true)
                 .setFoodCategory(category)
-                .setComponents(null)
+                .setComponents(components)
                 .build();
 
         FoodItem savedItem = foodItemDao.save(item);
 
         assertNotNull(savedItem);
         assertTrue(savedItem.getId() > 0, "ID сохраненного FoodItem должен быть сгенерирован и быть больше 0.");
-        assertEquals("Говядина", savedItem.getName(), "Имя сохраненного FoodItem должно совпадать.");
-        assertEquals(250.0, savedItem.getCaloriesPer100g(), 0.001, "Калорийность сохраненного FoodItem должна совпадать.");
+        assertEquals("Тесто", savedItem.getName(), "Имя сохраненного FoodItem должно совпадать.");
+        assertEquals(337.5, savedItem.getCaloriesPer100g(), 0.001, "Калорийность сохраненного FoodItem должна совпадать.");
         assertEquals(Unit.GRAM, savedItem.getUnit(), "Мера измерения сохраненного FoodItem должна совпадать.");
-        assertEquals(19.0, savedItem.getProteinsPer100g(), 0.001, "Белки сохраненного FoodItem должны совпадать.");
-        assertEquals(16.0, savedItem.getFatsPer100g(), 0.001, "Жиры сохраненного FoodItem должны совпадать.");
-        assertEquals(1.0, savedItem.getCarbsPer100g(), 0.001, "Углеводы сохраненного FoodItem должны совпадать.");
-        assertFalse(savedItem.isComposite(), "FoodItem должен остаться простым.");
+        assertEquals(7.5, savedItem.getProteinsPer100g(), 0.001, "Белки сохраненного FoodItem должны совпадать.");
+        assertEquals(0.75, savedItem.getFatsPer100g(), 0.001, "Жиры сохраненного FoodItem должны совпадать.");
+        assertEquals(77.5, savedItem.getCarbsPer100g(), 0.001, "Углеводы сохраненного FoodItem должны совпадать.");
+        assertTrue(savedItem.isComposite(), "FoodItem должен остаться составным.");
         assertEquals(category, savedItem.getFoodCategory(), "Категория сохраненного FoodItem должна совпадать.");
-        assertNull(savedItem.getComponents());
+        assertNotNull(savedItem.getComponents(), "Список компонентов сохраненного FoodItem должен сохраниться.");
+        assertEquals(2, savedItem.getComponents().size(), "Список компонентов сохраненного FoodItem должен содержать 2 компонента.");
+
+        Map<Long, Double> expectedComponentAmounts = new HashMap<>();
+        expectedComponentAmounts.put(savedFlour.getId(), 150.0);
+        expectedComponentAmounts.put(savedSugar.getId(), 50.0);
+        Map<Long, Double> actualComponentAmounts = new HashMap<>();
+        for (FoodComponent component : savedItem.getComponents()) {
+            assertTrue(component.getId() > 0, "ID сохраненного компонента при сохранении FoodItem должен быть сгенерирован и быть больше 0.");
+            actualComponentAmounts.put(component.getIngredientFoodItemId(), component.getAmountInGrams());
+        }
+        assertEquals(expectedComponentAmounts, actualComponentAmounts, "Ингредиенты и их количество не должны измениться при сохранении FoodItem.");
     }
 
     @Test

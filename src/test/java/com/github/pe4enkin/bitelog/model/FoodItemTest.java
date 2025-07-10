@@ -45,8 +45,8 @@ class FoodItemTest {
     @DisplayName("Проверка Builder'a составного FoodItem")
     void testBuilderCreatesCompositeFoodItemWithAllFields() {
         FoodCategory foodCategory = new FoodCategory(2, "Салаты");
-        FoodComponent component1 = new FoodComponent(1, 2, 3, 100);
-        FoodComponent component2 = new FoodComponent(1, 2, 4, 200);
+        FoodComponent component1 = new FoodComponent(1,  2, 100.0);
+        FoodComponent component2 = new FoodComponent(1,  3, 200.0);
         List<FoodComponent> components = Arrays.asList(component1, component2);
 
         FoodItem foodItem = new FoodItem.Builder()
@@ -82,8 +82,8 @@ class FoodItemTest {
     void testEqualsAndHashCodeEqualById() {
         FoodCategory foodCategory1 = new FoodCategory(1, "Мясо");
         FoodCategory foodCategory2 = new FoodCategory(1, "Салаты");
-        FoodComponent component1 = new FoodComponent(1, 2, 3, 100);
-        FoodComponent component2 = new FoodComponent(1, 2, 4, 200);
+        FoodComponent component1 = new FoodComponent(1, 2, 100.0);
+        FoodComponent component2 = new FoodComponent(1, 3, 200.0);
         List<FoodComponent> components = Arrays.asList(component1, component2);
         
         FoodItem foodItem1 = new FoodItem.Builder()

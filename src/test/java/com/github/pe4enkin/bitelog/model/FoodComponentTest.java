@@ -10,9 +10,9 @@ class FoodComponentTest {
     @Test
     @DisplayName("Проверка equals и hashCode при равенстве ID")
     void testEqualsAndHashCodeEqualById () {
-        FoodComponent foodComponent1 = new FoodComponent(1, 2, 3, 100);
-        FoodComponent foodComponent2 = new FoodComponent(1, 2, 3, 100);
-        FoodComponent foodComponent3 = new FoodComponent(1, 5, 7, 200);
+        FoodComponent foodComponent1 = new FoodComponent(1, 2, 100.0);
+        FoodComponent foodComponent2 = new FoodComponent(1, 2, 100.0);
+        FoodComponent foodComponent3 = new FoodComponent(1, 3, 200.0);
 
         assertTrue(foodComponent1.equals(foodComponent1));
         assertEquals(foodComponent1.hashCode(), foodComponent1.hashCode());
@@ -29,10 +29,10 @@ class FoodComponentTest {
     @Test
     @DisplayName("Проверка equals и hashCode при разных ID")
     void testEqualsAndHashCodeNotEqualById() {
-        FoodComponent foodComponent1 = new FoodComponent(1, 2, 3, 100);
-        FoodComponent foodComponent2 = new FoodComponent(2, 2, 3, 100);
-        FoodComponent foodComponent3 = new FoodComponent(0, 2, 3, 100);
-        FoodComponent foodComponent4 = new FoodComponent(0, 2, 3, 100);
+        FoodComponent foodComponent1 = new FoodComponent(1, 2, 100.0);
+        FoodComponent foodComponent2 = new FoodComponent(2, 2, 100.0);
+        FoodComponent foodComponent3 = new FoodComponent(0, 2, 100.0);
+        FoodComponent foodComponent4 = new FoodComponent(0, 2, 100.0);
 
         assertFalse(foodComponent1.equals(foodComponent2));
         assertFalse(foodComponent2.equals(foodComponent1));

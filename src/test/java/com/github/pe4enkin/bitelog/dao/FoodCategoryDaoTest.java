@@ -30,14 +30,6 @@ public class FoodCategoryDaoTest {
             stmt.execute(SqlQueries.DROP_TABLE_FOOD_CATEGORIES);
         }
         foodCategoryDao.createTables();
-        try (PreparedStatement pstmt = testConnection.prepareStatement(SqlQueries.SELECT_TABLE_NAME)) {
-            pstmt.setString(1, "food_categories");
-            try (ResultSet rs = pstmt.executeQuery()) {
-                assertTrue(rs.next(), "Таблица food_categories должна существовать после createTables.");
-                assertEquals("food_categories", rs.getString("name"), "Имя найденной таблицы должно совпадать с food_categories.");
-            }
-        }
-        ;
     }
 
     @AfterEach

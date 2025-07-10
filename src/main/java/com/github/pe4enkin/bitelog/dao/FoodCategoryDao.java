@@ -43,9 +43,9 @@ public class FoodCategoryDao {
             try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     foodCategory.setId(generatedKeys.getLong(1));
-                    LOGGER.info("FoodCategory {} сохранен {}", foodCategory.getName(), foodCategory.getId());
+                    LOGGER.info("FoodCategory {} сохранен c ID {}", foodCategory.getName(), foodCategory.getId());
                 } else {
-                    throw new SQLException("Создание food category не удалось, ID не было получено.");
+                    throw new SQLException("Создание FoodCategory не удалось, ID не было получено.");
                 }
             }
             return foodCategory;

@@ -61,35 +61,36 @@ public class FoodItemDao {
                         foodItem.setId(generatedKeys.getLong(1));
                         LOGGER.info("FoodItem {} сохранен с ID {}", foodItem.getName(), foodItem.getId());
                     } else {
-                        throw new SQLException("Создание food item не удалось, ID не было получено.");
+                        throw new SQLException("Создание FoodItem не удалось, ID не было получено.");
                     }
                 }
             }
 
             if (foodItem.isComposite() && foodItem.getComponents() != null && !foodItem.getComponents().isEmpty()) {
-                try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.INSERT_FOOD_COMPONENT, Statement.RETURN_GENERATED_KEYS)) {
-                    for (FoodComponent component : foodItem.getComponents()) {
-                        if (component.getIngredientFoodItemId() == 0) {
-                            LOGGER.warn("Обнаружен FoodComponent c ID 0.");
-                        }
+                for (FoodComponent component : foodItem.getComponents()) {
+                    if (component.getIngredientFoodItemId() == 0) {
+                        LOGGER.warn("Обнаружен FoodComponent c ID 0 при сохранении food item {}", foodItem.getName());
+                    }
+                    try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.INSERT_FOOD_COMPONENT, Statement.RETURN_GENERATED_KEYS)) {
                         pstmt.setLong(1, foodItem.getId());
                         pstmt.setLong(2, component.getIngredientFoodItemId());
                         pstmt.setDouble(3, component.getAmountInGrams());
-                        pstmt.addBatch();
-                    }
-                    pstmt.executeBatch();
-                    try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-                        int componentIndex = 0;
-                        while (generatedKeys.next() && componentIndex < foodItem.getComponents().size()) {
-                            foodItem.getComponents().get(componentIndex).setId(generatedKeys.getLong(1));
-                            componentIndex++;
+
+                        int affectedRows = pstmt.executeUpdate();
+                        if (affectedRows == 0) {
+                            throw new SQLException("Создание food component для food item " + foodItem.getName() + " не удалось.");
                         }
-                        if (componentIndex < foodItem.getComponents().size()) {
-                            LOGGER.warn("Не все ID компонентов были возвращены после пакетной вставки для сохранения FoodItem {}", foodItem.getName());
+                        try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                            if (generatedKeys.next()) {
+                                component.setId(generatedKeys.getLong(1));
+                                LOGGER.info("FoodComponent {} сохранен с ID {}", component.getIngredientFoodItemId(), component.getId());
+                            } else {
+                                throw new SQLException("Сохранение FoodComponent не удалось, ID не было получено.");
+                            }
                         }
                     }
-                    LOGGER.info("Сохранено {} компонентов для food item с ID {}", foodItem.getComponents().size(), foodItem.getId());
                 }
+                LOGGER.info("Сохранено {} компонентов для food item с ID {}", foodItem.getComponents().size(), foodItem.getId());
             }
             connection.commit();
             return foodItem;
@@ -173,7 +174,7 @@ public class FoodItemDao {
         FoodItem foodItem = null;
 
         try (Connection connection = dataSource.getConnection();
-             PreparedStatement pstmt = connection.prepareStatement(SqlQueries.SELECT_FOOD_ITEM_BY_ID)) {
+             PreparedStatement pstmt = connection.prepareStatement(SqlQueries.SELECT_FOOD_ITEM_BY_NAME)) {
             pstmt.setString(1, name);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
@@ -260,30 +261,32 @@ public class FoodItemDao {
             }
 
             if (foodItem.isComposite() && foodItem.getComponents() != null && !foodItem.getComponents().isEmpty()) {
-                try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.INSERT_FOOD_COMPONENT, Statement.RETURN_GENERATED_KEYS)) {
-                    for (FoodComponent component : foodItem.getComponents()) {
-                        if (component.getIngredientFoodItemId() == 0) {
-                            LOGGER.warn("Обнаружен FoodComponent c ID 0.");
-                        }
+                for (FoodComponent component : foodItem.getComponents()) {
+                    if (component.getIngredientFoodItemId() == 0) {
+                        LOGGER.warn("Обнаружен FoodComponent c ID 0 при обновлении food item {}", foodItem.getName());
+                    }
+                    try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.INSERT_FOOD_COMPONENT, Statement.RETURN_GENERATED_KEYS)) {
                         pstmt.setLong(1, foodItem.getId());
                         pstmt.setLong(2, component.getIngredientFoodItemId());
                         pstmt.setDouble(3, component.getAmountInGrams());
-                        pstmt.addBatch();
-                    }
-                    pstmt.executeBatch();
-                    try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
-                        int componentIndex = 0;
-                        while (generatedKeys.next() && componentIndex < foodItem.getComponents().size()) {
-                            foodItem.getComponents().get(componentIndex).setId(generatedKeys.getLong(1));
-                            componentIndex++;
+
+                        int affectedRows = pstmt.executeUpdate();
+                        if (affectedRows == 0) {
+                            throw new SQLException("Обновление food component для food item " + foodItem.getName() + " не удалось.");
                         }
-                        if (componentIndex < foodItem.getComponents().size()) {
-                            LOGGER.warn("Не все ID компонентов были возвращены после пакетной вставки для обновления FoodItem {}", foodItem.getName());
+                        try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                            if (generatedKeys.next()) {
+                                component.setId(generatedKeys.getLong(1));
+                                LOGGER.info("FoodComponent {} обновлен с ID {}", component.getIngredientFoodItemId(), component.getId());
+                            } else {
+                                throw new SQLException("Обновление FoodComponent не удалось, ID не было получено.");
+                            }
                         }
                     }
-                    LOGGER.info("Обновлено {} компонентов для food item с ID {}", foodItem.getComponents().size(), foodItem.getId());
                 }
+                LOGGER.info("Обновлено {} компонентов для food item с ID {}", foodItem.getComponents().size(), foodItem.getId());
             }
+
             connection.commit();
             return true;
         } catch (SQLException e) {
