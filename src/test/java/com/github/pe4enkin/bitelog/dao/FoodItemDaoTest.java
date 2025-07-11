@@ -26,7 +26,7 @@ public class FoodItemDaoTest {
 
     @BeforeEach
     void setUp() throws SQLException {
-        DatabaseConnectionManager.configureForTesting("file:memdb1?mode=memory&cache=shared");
+        DatabaseConnectionManager.configureForTesting("file:memdb1?mode=memory&cache=shared&foreign_keys=on");
         testDataSource = DatabaseConnectionManager.getDataSource();
         testConnection = testDataSource.getConnection();
         foodItemDao = new FoodItemDao(testDataSource);
@@ -82,7 +82,7 @@ public class FoodItemDaoTest {
     }
 
     @Test
-    @DisplayName("Метод save должен сохранить простой FoodItem и сгенерировать ID.")
+    @DisplayName("Метод save должен сохранить составной FoodItem и сгенерировать ID.")
     void save_shouldSaveCompositeFoodItem() throws SQLException {
         FoodItem flour = new FoodItem.Builder()
                 .setName("Мука")
@@ -156,17 +156,64 @@ public class FoodItemDaoTest {
     }
 
     @Test
-    @DisplayName("SQLException при вызове метода save на FoodCategory с неуникальным именем.")
+    @DisplayName("SQLException при вызове метода save на FoodItem с неуникальным именем.")
     void save_shouldThrowSQLExceptionOnDuplicateName() throws SQLException {
-        FoodCategory category1 = new FoodCategory("Мясо");
-        FoodCategory category2 = new FoodCategory("Мясо");
-        foodCategoryDao.save(category1);
+        FoodItem item = new FoodItem.Builder()
+                .setName("Говядина")
+                .setCaloriesPer100g(250.0)
+                .setServingSizeInGrams(200.0)
+                .setUnit(Unit.GRAM)
+                .setProteinsPer100g(19.0)
+                .setFatsPer100g(16.0)
+                .setCarbsPer100g(1.0)
+                .setComposite(false)
+                .setFoodCategory(category)
+                .setComponents(null)
+                .build();
+
+        FoodItem duplicateItem = new FoodItem.Builder()
+                .setName("Говядина")
+                .setCaloriesPer100g(250.0)
+                .setServingSizeInGrams(200.0)
+                .setUnit(Unit.GRAM)
+                .setProteinsPer100g(19.0)
+                .setFatsPer100g(16.0)
+                .setCarbsPer100g(1.0)
+                .setComposite(false)
+                .setFoodCategory(category)
+                .setComponents(null)
+                .build();
+
+        foodItemDao.save(item);
         assertThrows(SQLException.class, () -> {
-            foodCategoryDao.save(category2);
-        }, "Должно быть SQLException при сохранении FoodCategory с неуникальным именем.");
-        List<FoodCategory> allCategories = foodCategoryDao.findAll();
-        assertEquals(1, allCategories.size(), "В БД должен сохраниться только один food category.");
-        assertEquals("Мясо", allCategories.get(0).getName(), "Имя food category должно совпадать.");
+            foodItemDao.save(duplicateItem);
+        }, "Должно быть SQLException при сохранении FoodItem с неуникальным именем.");
+        List<FoodItem> allItems = foodItemDao.findAll(false);
+        assertEquals(1, allItems.size(), "В БД должен сохраниться только один food item.");
+        assertEquals("Говядина", allItems.get(0).getName(), "Имя food item должно совпадать.");
+    }
+
+    @Test
+    @DisplayName("SQLException при неудачной вставке.")
+    void save_shouldThrowSQLExceptionOnFailedInsert() throws SQLException {
+        FoodCategory invalidCategory = new FoodCategory(999L, "Несуществующая категория.");
+        FoodItem invalidItem = new FoodItem.Builder()
+                .setName("Говядина")
+                .setCaloriesPer100g(250.0)
+                .setServingSizeInGrams(200.0)
+                .setUnit(Unit.GRAM)
+                .setProteinsPer100g(19.0)
+                .setFatsPer100g(16.0)
+                .setCarbsPer100g(1.0)
+                .setComposite(false)
+                .setFoodCategory(invalidCategory)
+                .setComponents(null)
+                .build();
+
+        assertThrows(SQLException.class, () -> {
+            foodItemDao.save(invalidItem);
+        }, "Должно быть SQLException при сохранении FoodItem с несуществующей категорией.");
+        assertFalse(foodItemDao.findByName("Говядина").isPresent(), "food item не должен сохраниться после отката транзакции.");
     }
 
     @Test

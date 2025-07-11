@@ -1,5 +1,10 @@
 package com.github.pe4enkin.bitelog.dao;
 
+import com.github.pe4enkin.bitelog.dao.exception.ConstraintViolationException;
+import com.github.pe4enkin.bitelog.dao.exception.DataAccessException;
+import com.github.pe4enkin.bitelog.dao.exception.DuplicateKeyException;
+import com.github.pe4enkin.bitelog.dao.exception.ForeignKeyViolationException;
+import com.github.pe4enkin.bitelog.dao.util.SqlExceptionTranslator;
 import com.github.pe4enkin.bitelog.model.FoodCategory;
 import com.github.pe4enkin.bitelog.sql.SqlQueries;
 import org.slf4j.Logger;
@@ -19,25 +24,27 @@ public class FoodCategoryDao {
         this.dataSource = dataSource;
     }
 
-    public void createTables() throws SQLException {
+    public void createTables() {
         try (Connection connection = dataSource.getConnection();
              Statement stmt = connection.createStatement()) {
             stmt.execute(SqlQueries.CREATE_FOOD_CATEGORIES_TABLE);
             LOGGER.info("Таблица food_categories успешно создана (или уже существовала)");
         } catch (SQLException e) {
-            LOGGER.error("Ошибка создания таблиц food_categories: ", e);
-            throw e;
+            LOGGER.error("Произошло SQLException при создании таблицы food_categories. SQLState: {}, ErrorCode: {}, message: {}",
+                   e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
+            throw SqlExceptionTranslator.translate(e, "создании таблицы food_categories");
         }
     }
 
-    public FoodCategory save(FoodCategory foodCategory) throws SQLException {
+    public FoodCategory save(FoodCategory foodCategory) {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(SqlQueries.INSERT_FOOD_CATEGORY, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, foodCategory.getName());
 
             int affectedRows = pstmt.executeUpdate();
             if (affectedRows == 0) {
-                throw new SQLException("Создание food category " + foodCategory.getName() + " не удалось.");
+                LOGGER.error("Создание food category {} не удалось, 0 затронутых строк.", foodCategory.getName());
+                throw new DataAccessException("Создание food category " + foodCategory.getName() + " не удалось, 0 затронутых строк.");
             }
 
             try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
@@ -45,17 +52,19 @@ public class FoodCategoryDao {
                     foodCategory.setId(generatedKeys.getLong(1));
                     LOGGER.info("FoodCategory {} сохранен c ID {}", foodCategory.getName(), foodCategory.getId());
                 } else {
-                    throw new SQLException("Создание FoodCategory не удалось, ID не было получено.");
+                    LOGGER.error("Сохранение FoodCategory не удалось, ID не было получено для {}", foodCategory.getName());
+                    throw new DataAccessException("Сохранение FoodCategory не удалось, ID не было получено.");
                 }
             }
             return foodCategory;
         } catch (SQLException e) {
-            LOGGER.error("Ошибка сохранения FoodCategory {}. Откат транзакции.", foodCategory.getName(), e);
-            throw e;
+            LOGGER.error("Произошло SQLException при сохранении FoodCategory {}. SQLState: {}, ErrorCode: {}, message: {}",
+                    foodCategory.getName(), e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
+            throw SqlExceptionTranslator.translate(e, "сохранении FoodCategory " + foodCategory.getName());
         }
     }
 
-    public Optional<FoodCategory> findById(long id) throws SQLException {
+    public Optional<FoodCategory> findById(long id) {
         FoodCategory foodCategory = null;
         try (Connection connection = dataSource.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(SqlQueries.SELECT_FOOD_CATEGORY_BY_ID)) {
@@ -66,19 +75,20 @@ public class FoodCategoryDao {
                             rs.getLong("id"),
                             rs.getString("name")
                     );
-                    LOGGER.info("Найден food category {}", foodCategory.getName());
+                    LOGGER.debug("Найден food category {}", foodCategory.getName());
                 } else {
-                    LOGGER.info("food category c ID {} не найден.", id);
+                    LOGGER.debug("food category c ID {} не найден.", id);
                 }
             }
         } catch (SQLException e) {
-            LOGGER.error("Ошибка при поиске FoodCategory с ID {}", id, e);
-            throw e;
+            LOGGER.error("Произошло SQLException при поиске FoodCategory c ID {}. SQLState: {}, ErrorCode: {}, message: {}",
+                    id, e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
+            throw SqlExceptionTranslator.translate(e, "поиске FoodCategory c ID " + id);
         }
         return Optional.ofNullable(foodCategory);
     }
 
-    public Optional<FoodCategory> findByName(String name) throws SQLException {
+    public Optional<FoodCategory> findByName(String name) {
         FoodCategory foodCategory = null;
         try (Connection connection = dataSource.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(SqlQueries.SELECT_FOOD_CATEGORY_BY_NAME)) {
@@ -89,19 +99,20 @@ public class FoodCategoryDao {
                             rs.getLong("id"),
                             rs.getString("name")
                     );
-                    LOGGER.info("Найден food category {}", foodCategory.getName());
+                    LOGGER.debug("Найден food category {}", foodCategory.getName());
                 } else {
-                    LOGGER.info("food category c именем {} не найден.", name);
+                    LOGGER.debug("food category c именем {} не найден.", name);
                 }
             }
         } catch (SQLException e) {
-            LOGGER.error("Ошибка при поиске FoodCategory по имени {}", name, e);
-            throw e;
+            LOGGER.error("Произошло SQLException при поиске FoodCategory по имени {}. SQLState: {}, ErrorCode: {}, message: {}",
+                    name, e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
+            throw SqlExceptionTranslator.translate(e, "поиске FoodCategory по имени " + name);
         }
         return Optional.ofNullable(foodCategory);
     }
 
-    public boolean update(FoodCategory foodCategory) throws SQLException {
+    public boolean update(FoodCategory foodCategory) {
         try (Connection connection = dataSource.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(SqlQueries.UPDATE_FOOD_CATEGORY)) {
             pstmt.setString(1, foodCategory.getName());
@@ -115,12 +126,13 @@ public class FoodCategoryDao {
             LOGGER.info("food category {} c ID {} обновлен.", foodCategory.getName(), foodCategory.getId());
             return true;
         } catch (SQLException e) {
-            LOGGER.error("Ошибка обновления FoodCategory {}. Откат транзакции.", foodCategory.getName(), e);
-            throw e;
+            LOGGER.error("Произошло SQLException при обновлении FoodCategory {}. SQLState: {}, ErrorCode: {}, message: {}",
+                    foodCategory.getName(), e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
+            throw SqlExceptionTranslator.translate(e, "обновлении FoodCategory " + foodCategory.getName());
         }
     }
 
-    public boolean delete(long id) throws SQLException {
+    public boolean delete(long id) {
 
         try (Connection connection = dataSource.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(SqlQueries.DELETE_FOOD_CATEGORY)) {
@@ -135,12 +147,13 @@ public class FoodCategoryDao {
                 return true;
             }
         } catch (SQLException e) {
-            LOGGER.error("Ошибка удаления FoodCategory с ID {}. Откат транзакции.", id, e);
-            throw e;
+            LOGGER.error("Произошло SQLException при удалении FoodCategory c ID {}. SQLState: {}, ErrorCode: {}, message: {}",
+                    id, e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
+            throw SqlExceptionTranslator.translate(e, "удалении FoodCategory c ID " + id);
         }
     }
 
-    public List<FoodCategory> findAll() throws SQLException {
+    public List<FoodCategory> findAll() {
         List<FoodCategory> foodCategories = new ArrayList<>();
         try (Connection connection = dataSource.getConnection();
              PreparedStatement pstmt = connection.prepareStatement(SqlQueries.SELECT_ALL_FOOD_CATEGORY);
@@ -152,10 +165,11 @@ public class FoodCategoryDao {
                 );
                 foodCategories.add(foodCategory);
             }
-            LOGGER.info("Получено {} food category из БД.", foodCategories.size());
+            LOGGER.debug("Получено {} food category из БД.", foodCategories.size());
         } catch (SQLException e) {
-            LOGGER.error("Ошибка получения всех food category из БД.", e);
-            throw e;
+            LOGGER.error("Произошло SQLException при получении всех FoodCategory из БД. SQLState: {}, ErrorCode: {}, message: {}",
+                    e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
+            throw SqlExceptionTranslator.translate(e, "получении всех FoodCategory из БД.");
         }
         return foodCategories;
     }

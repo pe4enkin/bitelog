@@ -1,5 +1,7 @@
 package com.github.pe4enkin.bitelog.dao;
 
+import com.github.pe4enkin.bitelog.dao.exception.DataAccessException;
+import com.github.pe4enkin.bitelog.dao.util.SqlExceptionTranslator;
 import com.github.pe4enkin.bitelog.model.FoodCategory;
 import com.github.pe4enkin.bitelog.model.FoodComponent;
 import com.github.pe4enkin.bitelog.model.FoodItem;
@@ -22,19 +24,20 @@ public class FoodItemDao {
         this.dataSource = dataSource;
     }
 
-    public void createTables() throws SQLException {
+    public void createTables() {
         try (Connection connection = dataSource.getConnection();
              Statement stmt = connection.createStatement()) {
             stmt.execute(SqlQueries.CREATE_FOOD_ITEMS_TABLE);
             stmt.execute(SqlQueries.CREATE_FOOD_COMPONENTS_TABLE);
             LOGGER.info("Таблицы food_items и food_components успешно созданы (или уже существовали)");
         } catch (SQLException e) {
-            LOGGER.error("Ошибка создания таблиц food_items и food_components: ", e);
-            throw e;
+            LOGGER.error("Произошло SQLException при создании таблиц food_items и food_components. SQLState: {}, ErrorCode: {}, message: {}",
+                    e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
+            throw SqlExceptionTranslator.translate(e, "создании таблиц food_items и food_components");
         }
     }
 
-    public FoodItem save(FoodItem foodItem) throws SQLException {
+    public FoodItem save(FoodItem foodItem) {
         Connection connection = null;
         try {
             connection = dataSource.getConnection();
@@ -53,7 +56,8 @@ public class FoodItemDao {
 
                 int affectedRows = pstmt.executeUpdate();
                 if (affectedRows == 0) {
-                    throw new SQLException("Создание food item " + foodItem.getName() + " не удалось.");
+                    LOGGER.error("Создание food item {} не удалось, 0 затронутых строк.", foodItem.getName());
+                    throw new DataAccessException("Создание food item " + foodItem.getName() + " не удалось, 0 затронутых строк.");
                 }
 
                 try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
@@ -61,7 +65,8 @@ public class FoodItemDao {
                         foodItem.setId(generatedKeys.getLong(1));
                         LOGGER.info("FoodItem {} сохранен с ID {}", foodItem.getName(), foodItem.getId());
                     } else {
-                        throw new SQLException("Создание FoodItem не удалось, ID не было получено.");
+                        LOGGER.error("Сохранение FoodItem не удалось, ID не было получено для {}", foodItem.getName());
+                        throw new DataAccessException("Сохранение FoodItem не удалось, ID не было получено.");
                     }
                 }
             }
@@ -69,7 +74,8 @@ public class FoodItemDao {
             if (foodItem.isComposite() && foodItem.getComponents() != null && !foodItem.getComponents().isEmpty()) {
                 for (FoodComponent component : foodItem.getComponents()) {
                     if (component.getIngredientFoodItemId() == 0) {
-                        LOGGER.warn("Обнаружен FoodComponent c ID 0 при сохранении food item {}", foodItem.getName());
+                        LOGGER.error("Обнаружен FoodComponent c ID 0 при сохранении food item {}", foodItem.getName());
+                        throw new DataAccessException("Создание food component при сохранении food item" + foodItem.getName() + " не удалось, обнаружен компонент с ID 0");
                     }
                     try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.INSERT_FOOD_COMPONENT, Statement.RETURN_GENERATED_KEYS)) {
                         pstmt.setLong(1, foodItem.getId());
@@ -78,45 +84,53 @@ public class FoodItemDao {
 
                         int affectedRows = pstmt.executeUpdate();
                         if (affectedRows == 0) {
-                            throw new SQLException("Создание food component для food item " + foodItem.getName() + " не удалось.");
+                            LOGGER.error("Создание food component c id {} при сохранении food item {} не удалось, 0 затронутых строк.", component.getIngredientFoodItemId() ,foodItem.getName());
+                            throw new DataAccessException("Создание food component для food item " + foodItem.getName() + " не удалось, 0 затронутых строк.");
                         }
                         try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
                             if (generatedKeys.next()) {
                                 component.setId(generatedKeys.getLong(1));
-                                LOGGER.info("FoodComponent {} сохранен с ID {}", component.getIngredientFoodItemId(), component.getId());
+                                LOGGER.debug("FoodComponent {} при сохранении food item {} сохранен с ID {}",
+                                        component.getIngredientFoodItemId(), foodItem.getName(), component.getId());
                             } else {
-                                throw new SQLException("Сохранение FoodComponent не удалось, ID не было получено.");
+                                LOGGER.error("Создание food component при сохранении food item {} не удалось, ID не было получено для {}",
+                                        foodItem.getName(), component.getIngredientFoodItemId());
+                                throw new DataAccessException("Сохранение FoodComponent не удалось, ID не было получено.");
                             }
                         }
                     }
                 }
-                LOGGER.info("Сохранено {} компонентов для food item с ID {}", foodItem.getComponents().size(), foodItem.getId());
+                LOGGER.info("Сохранено {} компонентов при сохранении food item {}", foodItem.getComponents().size(), foodItem.getName());
             }
             connection.commit();
             return foodItem;
         } catch (SQLException e) {
-            LOGGER.error("Ошибка сохранения FoodItem {}. Откат транзакции.", foodItem.getName(), e);
+            LOGGER.error("Произошло SQLException при сохранении FoodItem {}. SQLState: {}, ErrorCode: {}, message: {}",
+                    foodItem.getName(), e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
             if (connection != null) {
                 try {
                     connection.rollback();
+                    LOGGER.warn("Откат транзакции после неудачного сохранения FoodItem {}", foodItem.getName());
                 } catch (SQLException rollbackEx) {
-                    LOGGER.error("Ошибка отката транзакции для сохранения FoodItem {}", foodItem.getName(), rollbackEx);
+                    LOGGER.error("Произошло SQLException при откате транзакции после неудачного сохранения FoodItem {}. SQLState: {}, ErrorCode: {}, message: {}",
+                            foodItem.getName(), rollbackEx.getSQLState(), rollbackEx.getErrorCode(), rollbackEx.getMessage(), rollbackEx);
                 }
             }
-            throw e;
+            throw SqlExceptionTranslator.translate(e, "сохранении FoodItem " + foodItem.getName());
         } finally {
             if (connection != null) {
                 try {
                     connection.setAutoCommit(true);
                     connection.close();
                 } catch (SQLException closeEx) {
-                    LOGGER.error("Ошибка закрытия соединения после сохранения food item.", closeEx);
+                    LOGGER.error("Произошло SQLException при попытке закрытия соединения после сохранения FoodItem {}. SQLState: {}, ErrorCode: {}, message: {}",
+                           foodItem.getName(), closeEx.getSQLState(), closeEx.getErrorCode(), closeEx.getMessage(), closeEx);
                 }
             }
         }
     }
 
-    public Optional<FoodItem> findById(long id) throws SQLException {
+    public Optional<FoodItem> findById(long id) {
         FoodItem foodItem = null;
 
         try (Connection connection = dataSource.getConnection();
@@ -158,19 +172,20 @@ public class FoodItemDao {
                         }
                         foodItem.setComponents(components.isEmpty() ? null : components);
                     }
-                    LOGGER.info("Найден food item {}", foodItem.getName());
+                    LOGGER.debug("Найден food item {} по ID {}", foodItem.getName(), id);
                 } else {
-                    LOGGER.info("food item c ID {} не найден.", id);
+                    LOGGER.debug("food item c ID {} не найден.", id);
                 }
             }
         } catch (SQLException e) {
-            LOGGER.error("Ошибка при поиске FoodItem с ID {}", id, e);
-            throw e;
+            LOGGER.error("Произошло SQLException при поиске FoodItem c ID {}. SQLState: {}, ErrorCode: {}, message: {}",
+                    id, e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
+            throw SqlExceptionTranslator.translate(e, "поиске FoodItem c ID " + id);
         }
         return Optional.ofNullable(foodItem);
     }
 
-    public Optional<FoodItem> findByName(String name) throws SQLException {
+    public Optional<FoodItem> findByName(String name) {
         FoodItem foodItem = null;
 
         try (Connection connection = dataSource.getConnection();
@@ -212,19 +227,20 @@ public class FoodItemDao {
                         }
                         foodItem.setComponents(components.isEmpty() ? null : components);
                     }
-                    LOGGER.info("Найден food item {}", foodItem.getName());
+                    LOGGER.debug("Найден food item c ID {} по имени {}", foodItem.getId(), name);
                 } else {
-                    LOGGER.info("food item c именем {} не найден.", name);
+                    LOGGER.debug("food item c именем {} не найден.", name);
                 }
             }
         } catch (SQLException e) {
-            LOGGER.error("Ошибка при поиске FoodItem с именем {}", name, e);
-            throw e;
+            LOGGER.error("Произошло SQLException при поиске FoodItem по имени {}. SQLState: {}, ErrorCode: {}, message: {}",
+                    name, e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
+            throw SqlExceptionTranslator.translate(e, "поиске FoodItem по имени " + name);
         }
         return Optional.ofNullable(foodItem);
     }
 
-    public boolean update(FoodItem foodItem) throws SQLException {
+    public boolean update(FoodItem foodItem) {
         Connection connection = null;
 
         try {
@@ -257,13 +273,16 @@ public class FoodItemDao {
                 int deletedComponents = pstmt.executeUpdate();
                 if (deletedComponents > 0) {
                     LOGGER.info("Удалено {} существующих компонентов для food item c ID {}", deletedComponents, foodItem.getId());
+                } else {
+                    LOGGER.debug("Для food item с ID {} не найдено существующих компонентов для удаления.", foodItem.getId());
                 }
             }
 
             if (foodItem.isComposite() && foodItem.getComponents() != null && !foodItem.getComponents().isEmpty()) {
                 for (FoodComponent component : foodItem.getComponents()) {
                     if (component.getIngredientFoodItemId() == 0) {
-                        LOGGER.warn("Обнаружен FoodComponent c ID 0 при обновлении food item {}", foodItem.getName());
+                        LOGGER.error("Обнаружен FoodComponent c ID 0 при обновлении food item {}", foodItem.getName());
+                        throw new DataAccessException("Создание food component при сохранении food item" + foodItem.getName() + " не удалось, обнаружен компонент с ID 0");
                     }
                     try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.INSERT_FOOD_COMPONENT, Statement.RETURN_GENERATED_KEYS)) {
                         pstmt.setLong(1, foodItem.getId());
@@ -272,46 +291,53 @@ public class FoodItemDao {
 
                         int affectedRows = pstmt.executeUpdate();
                         if (affectedRows == 0) {
-                            throw new SQLException("Обновление food component для food item " + foodItem.getName() + " не удалось.");
+                            LOGGER.error("Создание food component {} при обновлении food item {} не удалось, 0 затронутых строк.",component.getIngredientFoodItemId(), foodItem.getName());
+                            throw new DataAccessException("Создание food component для food item " + foodItem.getName() + " не удалось, 0 затронутых строк.");
                         }
                         try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
                             if (generatedKeys.next()) {
                                 component.setId(generatedKeys.getLong(1));
-                                LOGGER.info("FoodComponent {} обновлен с ID {}", component.getIngredientFoodItemId(), component.getId());
+                                LOGGER.debug("FoodComponent {} при обновлении food item {} сохранен с ID {}", component.getIngredientFoodItemId(), foodItem.getName() ,component.getId());
                             } else {
-                                throw new SQLException("Обновление FoodComponent не удалось, ID не было получено.");
+                                LOGGER.error("Создание FoodComponent при обновлении food item {} не удалось, ID не было получено для {}",
+                                        foodItem.getName(),component.getIngredientFoodItemId());
+                                throw new DataAccessException("Создание FoodComponent не удалось, ID не было получено.");
                             }
                         }
                     }
                 }
-                LOGGER.info("Обновлено {} компонентов для food item с ID {}", foodItem.getComponents().size(), foodItem.getId());
+                LOGGER.info("Сохранено {} компонентов при обновлении food item {}", foodItem.getComponents().size(), foodItem.getName());
             }
 
             connection.commit();
             return true;
         } catch (SQLException e) {
-            LOGGER.error("Ошибка обновления FoodItem {}. Откат транзакции.", foodItem.getName(), e);
+            LOGGER.error("Произошло SQLException при обновлении FoodItem . SQLState: {}, ErrorCode: {}, message: {}",
+                    foodItem.getName(), e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
             if (connection != null) {
                 try {
                     connection.rollback();
+                    LOGGER.warn("Откат транзакции после неудачного обновления FoodItem {}", foodItem.getName());
                 } catch (SQLException rollbackEx) {
-                    LOGGER.error("Ошибка отката транзакции для обновления FoodItem {}", foodItem.getName(), rollbackEx);
+                    LOGGER.error("Произошло SQLException при откате транзакции после неудачного обновления FoodItem {}. SQLState: {}, ErrorCode: {}, message: {}",
+                            foodItem.getName(), rollbackEx.getSQLState(), rollbackEx.getErrorCode(), rollbackEx.getMessage(), rollbackEx);
                 }
             }
-            throw e;
+            throw SqlExceptionTranslator.translate(e, "обновлении FoodItem " + foodItem.getName());
         } finally {
             if (connection != null) {
                 try {
                     connection.setAutoCommit(true);
                     connection.close();
                 } catch (SQLException closeEx) {
-                    LOGGER.error("Ошибка закрытия соединения после обновления food item.", closeEx);
+                    LOGGER.error("Произошло SQLException при попытке закрытия соединения после сохранения FoodItem {}. SQLState: {}, ErrorCode: {}, message: {}",
+                            foodItem.getName(), closeEx.getSQLState(), closeEx.getErrorCode(), closeEx.getMessage(), closeEx);
                 }
             }
         }
     }
 
-    public boolean delete(long id) throws SQLException {
+    public boolean delete(long id) {
         Connection connection = null;
 
         try {
@@ -332,28 +358,32 @@ public class FoodItemDao {
                 }
             }
         } catch (SQLException e) {
-            LOGGER.error("Ошибка удаления FoodItem с ID {}. Откат транзакции.", id, e);
+            LOGGER.error("Произошло SQLException при удалении FoodItem с ID {}. SQLState: {}, ErrorCode: {}, message: {}",
+                    id, e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
             if (connection != null) {
                 try {
                     connection.rollback();
+                    LOGGER.warn("Откат транзакции после неудачного удаления FoodItem с ID {}", id);
                 } catch (SQLException rollbackEx) {
-                    LOGGER.error("Ошибка отката транзакции для удаления FoodItem с ID {}", id, rollbackEx);
+                    LOGGER.error("Произошло SQLException при откате транзакции после неудачного удаления FoodItem с ID {}. SQLState: {}, ErrorCode: {}, message: {}",
+                            id, rollbackEx.getSQLState(), rollbackEx.getErrorCode(), rollbackEx.getMessage(), e);
                 }
             }
-            throw e;
+            throw SqlExceptionTranslator.translate(e, "удалении FoodItem с ID " + id);
         } finally {
             if (connection != null) {
                 try {
                     connection.setAutoCommit(true);
                     connection.close();
                 } catch (SQLException closeEx) {
-                    LOGGER.error("Ошибка закрытия соединения после удаления food item.", closeEx);
+                    LOGGER.error("Произошло SQLException при попытке закрытия соединения после удаления FoodItem c ID {}. SQLState: {}, ErrorCode: {}, message: {}",
+                            id, closeEx.getSQLState(), closeEx.getErrorCode(), closeEx.getMessage(), closeEx);
                 }
             }
         }
     }
 
-    public List<FoodItem> findAll(boolean loadComponents) throws SQLException {
+    public List<FoodItem> findAll(boolean loadComponents) {
         List<FoodItem> foodItems = new ArrayList<>();
 
         try (Connection connection = dataSource.getConnection();
@@ -398,10 +428,11 @@ public class FoodItemDao {
                 }
                 foodItems.add(foodItem);
             }
-            LOGGER.info("Получено {} food items из БД.", foodItems.size());
+            LOGGER.debug("Получено {} food items из БД.", foodItems.size());
         } catch (SQLException e) {
-            LOGGER.error("Ошибка получения всех food items из БД.", e);
-            throw e;
+            LOGGER.error("Произошло SQLException при получении всех FoodItem из БД. SQLState: {}, ErrorCode: {}, message: {}",
+                   e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
+            throw SqlExceptionTranslator.translate(e, "получении всех FoodItem из БД.");
         }
         return foodItems;
     }

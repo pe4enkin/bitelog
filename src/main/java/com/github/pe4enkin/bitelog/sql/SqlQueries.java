@@ -24,7 +24,7 @@ public class SqlQueries {
                 ingredient_food_item_id INTEGER NOT NULL,
                 amount_in_grams REAL NOT NULL,
                 FOREIGN KEY (parent_food_item_id) REFERENCES food_items(id) ON DELETE CASCADE,
-                FOREIGN KEY (ingredient_food_item_id) REFERENCES food_items(id) ON DELETE CASCADE
+                FOREIGN KEY (ingredient_food_item_id) REFERENCES food_items(id) ON DELETE RESTRICT
             )
             """;
 
