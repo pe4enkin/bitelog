@@ -31,7 +31,7 @@ public class FoodItemDao {
             stmt.execute(SqlQueries.CREATE_FOOD_COMPONENTS_TABLE);
             LOGGER.info("Таблицы food_items и food_components успешно созданы (или уже существовали)");
         } catch (SQLException e) {
-            LOGGER.error("Произошло SQLException при создании таблиц food_items и food_components. SQLState: {}, ErrorCode: {}, message: {}",
+            LOGGER.error("Ошибка при создании таблиц food_items и food_components. SQLState: {}, ErrorCode: {}, message: {}",
                     e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
             throw SqlExceptionTranslator.translate(e, "создании таблиц food_items и food_components");
         }
@@ -105,14 +105,14 @@ public class FoodItemDao {
             connection.commit();
             return foodItem;
         } catch (SQLException e) {
-            LOGGER.error("Произошло SQLException при сохранении FoodItem {}. SQLState: {}, ErrorCode: {}, message: {}",
+            LOGGER.error("Ошибка при сохранении FoodItem {}. SQLState: {}, ErrorCode: {}, message: {}",
                     foodItem.getName(), e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
             if (connection != null) {
                 try {
                     connection.rollback();
                     LOGGER.warn("Откат транзакции после неудачного сохранения FoodItem {}", foodItem.getName());
                 } catch (SQLException rollbackEx) {
-                    LOGGER.error("Произошло SQLException при откате транзакции после неудачного сохранения FoodItem {}. SQLState: {}, ErrorCode: {}, message: {}",
+                    LOGGER.error("Ошибка при откате транзакции после неудачного сохранения FoodItem {}. SQLState: {}, ErrorCode: {}, message: {}",
                             foodItem.getName(), rollbackEx.getSQLState(), rollbackEx.getErrorCode(), rollbackEx.getMessage(), rollbackEx);
                 }
             }
@@ -123,7 +123,7 @@ public class FoodItemDao {
                     connection.setAutoCommit(true);
                     connection.close();
                 } catch (SQLException closeEx) {
-                    LOGGER.error("Произошло SQLException при попытке закрытия соединения после сохранения FoodItem {}. SQLState: {}, ErrorCode: {}, message: {}",
+                    LOGGER.error("Ошибка при попытке закрытия соединения после сохранения FoodItem {}. SQLState: {}, ErrorCode: {}, message: {}",
                            foodItem.getName(), closeEx.getSQLState(), closeEx.getErrorCode(), closeEx.getMessage(), closeEx);
                 }
             }
@@ -178,7 +178,7 @@ public class FoodItemDao {
                 }
             }
         } catch (SQLException e) {
-            LOGGER.error("Произошло SQLException при поиске FoodItem c ID {}. SQLState: {}, ErrorCode: {}, message: {}",
+            LOGGER.error("Ошибка при поиске FoodItem c ID {}. SQLState: {}, ErrorCode: {}, message: {}",
                     id, e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
             throw SqlExceptionTranslator.translate(e, "поиске FoodItem c ID " + id);
         }
@@ -233,7 +233,7 @@ public class FoodItemDao {
                 }
             }
         } catch (SQLException e) {
-            LOGGER.error("Произошло SQLException при поиске FoodItem по имени {}. SQLState: {}, ErrorCode: {}, message: {}",
+            LOGGER.error("Ошибка при поиске FoodItem по имени {}. SQLState: {}, ErrorCode: {}, message: {}",
                     name, e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
             throw SqlExceptionTranslator.translate(e, "поиске FoodItem по имени " + name);
         }
@@ -312,14 +312,14 @@ public class FoodItemDao {
             connection.commit();
             return true;
         } catch (SQLException e) {
-            LOGGER.error("Произошло SQLException при обновлении FoodItem . SQLState: {}, ErrorCode: {}, message: {}",
+            LOGGER.error("Ошибка при обновлении FoodItem . SQLState: {}, ErrorCode: {}, message: {}",
                     foodItem.getName(), e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
             if (connection != null) {
                 try {
                     connection.rollback();
                     LOGGER.warn("Откат транзакции после неудачного обновления FoodItem {}", foodItem.getName());
                 } catch (SQLException rollbackEx) {
-                    LOGGER.error("Произошло SQLException при откате транзакции после неудачного обновления FoodItem {}. SQLState: {}, ErrorCode: {}, message: {}",
+                    LOGGER.error("Ошибка при откате транзакции после неудачного обновления FoodItem {}. SQLState: {}, ErrorCode: {}, message: {}",
                             foodItem.getName(), rollbackEx.getSQLState(), rollbackEx.getErrorCode(), rollbackEx.getMessage(), rollbackEx);
                 }
             }
@@ -330,7 +330,7 @@ public class FoodItemDao {
                     connection.setAutoCommit(true);
                     connection.close();
                 } catch (SQLException closeEx) {
-                    LOGGER.error("Произошло SQLException при попытке закрытия соединения после сохранения FoodItem {}. SQLState: {}, ErrorCode: {}, message: {}",
+                    LOGGER.error("Ошибка при попытке закрытия соединения после сохранения FoodItem {}. SQLState: {}, ErrorCode: {}, message: {}",
                             foodItem.getName(), closeEx.getSQLState(), closeEx.getErrorCode(), closeEx.getMessage(), closeEx);
                 }
             }
@@ -358,14 +358,14 @@ public class FoodItemDao {
                 }
             }
         } catch (SQLException e) {
-            LOGGER.error("Произошло SQLException при удалении FoodItem с ID {}. SQLState: {}, ErrorCode: {}, message: {}",
+            LOGGER.error("Ошибка при удалении FoodItem с ID {}. SQLState: {}, ErrorCode: {}, message: {}",
                     id, e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
             if (connection != null) {
                 try {
                     connection.rollback();
                     LOGGER.warn("Откат транзакции после неудачного удаления FoodItem с ID {}", id);
                 } catch (SQLException rollbackEx) {
-                    LOGGER.error("Произошло SQLException при откате транзакции после неудачного удаления FoodItem с ID {}. SQLState: {}, ErrorCode: {}, message: {}",
+                    LOGGER.error("Ошибка при откате транзакции после неудачного удаления FoodItem с ID {}. SQLState: {}, ErrorCode: {}, message: {}",
                             id, rollbackEx.getSQLState(), rollbackEx.getErrorCode(), rollbackEx.getMessage(), e);
                 }
             }
@@ -376,7 +376,7 @@ public class FoodItemDao {
                     connection.setAutoCommit(true);
                     connection.close();
                 } catch (SQLException closeEx) {
-                    LOGGER.error("Произошло SQLException при попытке закрытия соединения после удаления FoodItem c ID {}. SQLState: {}, ErrorCode: {}, message: {}",
+                    LOGGER.error("Ошибка при попытке закрытия соединения после удаления FoodItem c ID {}. SQLState: {}, ErrorCode: {}, message: {}",
                             id, closeEx.getSQLState(), closeEx.getErrorCode(), closeEx.getMessage(), closeEx);
                 }
             }
@@ -430,7 +430,7 @@ public class FoodItemDao {
             }
             LOGGER.debug("Получено {} food items из БД.", foodItems.size());
         } catch (SQLException e) {
-            LOGGER.error("Произошло SQLException при получении всех FoodItem из БД. SQLState: {}, ErrorCode: {}, message: {}",
+            LOGGER.error("Ошибка при получении всех FoodItem из БД. SQLState: {}, ErrorCode: {}, message: {}",
                    e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
             throw SqlExceptionTranslator.translate(e, "получении всех FoodItem из БД.");
         }

@@ -30,7 +30,7 @@ public class FoodCategoryDao {
             stmt.execute(SqlQueries.CREATE_FOOD_CATEGORIES_TABLE);
             LOGGER.info("Таблица food_categories успешно создана (или уже существовала)");
         } catch (SQLException e) {
-            LOGGER.error("Произошло SQLException при создании таблицы food_categories. SQLState: {}, ErrorCode: {}, message: {}",
+            LOGGER.error("Ошибка при создании таблицы food_categories. SQLState: {}, ErrorCode: {}, message: {}",
                    e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
             throw SqlExceptionTranslator.translate(e, "создании таблицы food_categories");
         }
@@ -58,7 +58,7 @@ public class FoodCategoryDao {
             }
             return foodCategory;
         } catch (SQLException e) {
-            LOGGER.error("Произошло SQLException при сохранении FoodCategory {}. SQLState: {}, ErrorCode: {}, message: {}",
+            LOGGER.error("Ошибка при сохранении FoodCategory {}. SQLState: {}, ErrorCode: {}, message: {}",
                     foodCategory.getName(), e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
             throw SqlExceptionTranslator.translate(e, "сохранении FoodCategory " + foodCategory.getName());
         }
@@ -81,7 +81,7 @@ public class FoodCategoryDao {
                 }
             }
         } catch (SQLException e) {
-            LOGGER.error("Произошло SQLException при поиске FoodCategory c ID {}. SQLState: {}, ErrorCode: {}, message: {}",
+            LOGGER.error("Ошибка при поиске FoodCategory c ID {}. SQLState: {}, ErrorCode: {}, message: {}",
                     id, e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
             throw SqlExceptionTranslator.translate(e, "поиске FoodCategory c ID " + id);
         }
@@ -105,7 +105,7 @@ public class FoodCategoryDao {
                 }
             }
         } catch (SQLException e) {
-            LOGGER.error("Произошло SQLException при поиске FoodCategory по имени {}. SQLState: {}, ErrorCode: {}, message: {}",
+            LOGGER.error("Ошибка при поиске FoodCategory по имени {}. SQLState: {}, ErrorCode: {}, message: {}",
                     name, e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
             throw SqlExceptionTranslator.translate(e, "поиске FoodCategory по имени " + name);
         }
@@ -126,7 +126,7 @@ public class FoodCategoryDao {
             LOGGER.info("food category {} c ID {} обновлен.", foodCategory.getName(), foodCategory.getId());
             return true;
         } catch (SQLException e) {
-            LOGGER.error("Произошло SQLException при обновлении FoodCategory {}. SQLState: {}, ErrorCode: {}, message: {}",
+            LOGGER.error("Ошибка при обновлении FoodCategory {}. SQLState: {}, ErrorCode: {}, message: {}",
                     foodCategory.getName(), e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
             throw SqlExceptionTranslator.translate(e, "обновлении FoodCategory " + foodCategory.getName());
         }
@@ -147,7 +147,7 @@ public class FoodCategoryDao {
                 return true;
             }
         } catch (SQLException e) {
-            LOGGER.error("Произошло SQLException при удалении FoodCategory c ID {}. SQLState: {}, ErrorCode: {}, message: {}",
+            LOGGER.error("Ошиибка при удалении FoodCategory c ID {}. SQLState: {}, ErrorCode: {}, message: {}",
                     id, e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
             throw SqlExceptionTranslator.translate(e, "удалении FoodCategory c ID " + id);
         }
@@ -167,7 +167,7 @@ public class FoodCategoryDao {
             }
             LOGGER.debug("Получено {} food category из БД.", foodCategories.size());
         } catch (SQLException e) {
-            LOGGER.error("Произошло SQLException при получении всех FoodCategory из БД. SQLState: {}, ErrorCode: {}, message: {}",
+            LOGGER.error("Ошибка при получении всех FoodCategory из БД. SQLState: {}, ErrorCode: {}, message: {}",
                     e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
             throw SqlExceptionTranslator.translate(e, "получении всех FoodCategory из БД.");
         }

@@ -1,5 +1,6 @@
 package com.github.pe4enkin.bitelog.dao;
 
+import com.github.pe4enkin.bitelog.dao.exception.DuplicateKeyException;
 import com.github.pe4enkin.bitelog.db.DatabaseConnectionManager;
 import com.github.pe4enkin.bitelog.model.FoodCategory;
 import com.github.pe4enkin.bitelog.sql.SqlQueries;
@@ -53,14 +54,14 @@ public class FoodCategoryDaoTest {
     }
 
     @Test
-    @DisplayName("SQLException при вызове метода save на FoodCategory с неуникальным именем.")
-    void save_shouldThrowSQLExceptionOnDuplicateName() throws SQLException {
+    @DisplayName("DuplicateKeyException при вызове метода save на FoodCategory с неуникальным именем.")
+    void save_shouldThrowDuplicateKeyExceptionOnDuplicateName() throws SQLException {
         FoodCategory category1 = new FoodCategory("Мясо");
         FoodCategory category2 = new FoodCategory("Мясо");
         foodCategoryDao.save(category1);
-        assertThrows(SQLException.class, () -> {
+        assertThrows(DuplicateKeyException.class, () -> {
             foodCategoryDao.save(category2);
-        }, "Должно быть SQLException при сохранении FoodCategory с неуникальным именем.");
+        }, "Должно быть DuplicateKeyException при сохранении FoodCategory с неуникальным именем.");
         List<FoodCategory> allCategories = foodCategoryDao.findAll();
         assertEquals(1, allCategories.size(), "В БД должен сохраниться только один food category.");
         assertEquals("Мясо", allCategories.get(0).getName(), "Имя food category должно совпадать.");
@@ -120,8 +121,8 @@ public class FoodCategoryDaoTest {
     }
 
     @Test
-    @DisplayName("SQLException при вызове метода update на FoodCategory с неуникальным именем.")
-    void update_shouldThrowSQLExceptionOnDuplicateName() throws SQLException {
+    @DisplayName("DuplicateKeyException при вызове метода update на FoodCategory с неуникальным именем.")
+    void update_shouldThrowDuplicateKeyExceptionOnDuplicateName() throws SQLException {
         FoodCategory category1 = new FoodCategory("Мясо");
         FoodCategory category2 = new FoodCategory("Рыба");
         FoodCategory savedCategory1 = foodCategoryDao.save(category1);
@@ -129,9 +130,9 @@ public class FoodCategoryDaoTest {
 
         savedCategory2.setName("Мясо");
 
-        assertThrows(SQLException.class, () -> {
+        assertThrows(DuplicateKeyException.class, () -> {
             foodCategoryDao.update(savedCategory2);
-        }, "Должно быть SQLException при обновлении FoodCategory с неуникальным именем.");
+        }, "Должно быть DuplicateKeyException при обновлении FoodCategory с неуникальным именем.");
 
         Optional<FoodCategory> foundAfterUpdate = foodCategoryDao.findById(savedCategory2.getId());
         assertTrue(foundAfterUpdate.isPresent(), "food category должен остаться после неудачной попытки обновления.");
