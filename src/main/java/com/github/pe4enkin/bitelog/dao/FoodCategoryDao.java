@@ -147,7 +147,7 @@ public class FoodCategoryDao {
                 return true;
             }
         } catch (SQLException e) {
-            LOGGER.error("Ошиибка при удалении FoodCategory c ID {}. SQLState: {}, ErrorCode: {}, message: {}",
+            LOGGER.error("Ошибка при удалении FoodCategory c ID {}. SQLState: {}, ErrorCode: {}, message: {}",
                     id, e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
             throw SqlExceptionTranslator.translate(e, "удалении FoodCategory c ID " + id);
         }

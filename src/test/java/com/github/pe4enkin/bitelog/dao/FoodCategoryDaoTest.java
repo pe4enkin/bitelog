@@ -44,7 +44,7 @@ public class FoodCategoryDaoTest {
 
     @Test
     @DisplayName("Метод save должен сохранить FoodCategory и сгенерировать ID.")
-    void save_shouldSaveFoodCategory() throws SQLException {
+    void save_shouldSaveFoodCategory() {
         FoodCategory category = new FoodCategory("Мясо");
         FoodCategory savedCategory = foodCategoryDao.save(category);
 
@@ -55,7 +55,7 @@ public class FoodCategoryDaoTest {
 
     @Test
     @DisplayName("DuplicateKeyException при вызове метода save на FoodCategory с неуникальным именем.")
-    void save_shouldThrowDuplicateKeyExceptionOnDuplicateName() throws SQLException {
+    void save_shouldThrowDuplicateKeyExceptionOnDuplicateName() {
         FoodCategory category1 = new FoodCategory("Мясо");
         FoodCategory category2 = new FoodCategory("Мясо");
         foodCategoryDao.save(category1);
@@ -69,7 +69,7 @@ public class FoodCategoryDaoTest {
 
     @Test
     @DisplayName("Метод findById должен найти существующую food category по ID.")
-    void findById_shouldReturnExistingFoodCategory() throws SQLException {
+    void findById_shouldReturnExistingFoodCategory() {
         FoodCategory category = new FoodCategory("Мясо");
         FoodCategory savedCategory = foodCategoryDao.save(category);
 
@@ -81,14 +81,14 @@ public class FoodCategoryDaoTest {
 
     @Test
     @DisplayName("Метод findById должен вернуть Optional.empty, если food category не существует.")
-    void findById_shouldReturnEmptyForNonExistentFoodCategory() throws SQLException {
+    void findById_shouldReturnEmptyForNonExistentFoodCategory() {
         Optional<FoodCategory> foundCategory = foodCategoryDao.findById(999L);
         assertFalse(foundCategory.isPresent(), "food category не должен быть найден.");
     }
 
     @Test
     @DisplayName("Метод findByName должен найти существующую food category по имени.")
-    void findByName_shouldReturnExistingFoodCategory() throws SQLException {
+    void findByName_shouldReturnExistingFoodCategory() {
         FoodCategory category = new FoodCategory("Мясо");
         FoodCategory savedCategory = foodCategoryDao.save(category);
 
@@ -100,14 +100,14 @@ public class FoodCategoryDaoTest {
 
     @Test
     @DisplayName("Метод findByName должен вернуть Optional.empty, если food category не существует.")
-    void findByName_shouldReturnEmptyForNonExistentFoodCategory() throws SQLException {
+    void findByName_shouldReturnEmptyForNonExistentFoodCategory() {
         Optional<FoodCategory> foundCategory = foodCategoryDao.findByName("Несуществующее имя");
         assertFalse(foundCategory.isPresent(), "food category не должен быть найден.");
     }
 
     @Test
     @DisplayName("Метод update должен успешно обновить food category.")
-    void update_shouldUpdateFoodCategory() throws SQLException {
+    void update_shouldUpdateFoodCategory() {
         FoodCategory category = new FoodCategory("Мясо");
         FoodCategory savedCategory = foodCategoryDao.save(category);
 
@@ -122,7 +122,7 @@ public class FoodCategoryDaoTest {
 
     @Test
     @DisplayName("DuplicateKeyException при вызове метода update на FoodCategory с неуникальным именем.")
-    void update_shouldThrowDuplicateKeyExceptionOnDuplicateName() throws SQLException {
+    void update_shouldThrowDuplicateKeyExceptionOnDuplicateName() {
         FoodCategory category1 = new FoodCategory("Мясо");
         FoodCategory category2 = new FoodCategory("Рыба");
         FoodCategory savedCategory1 = foodCategoryDao.save(category1);
@@ -141,15 +141,15 @@ public class FoodCategoryDaoTest {
 
     @Test
     @DisplayName("Метод update должен вернуть false если food category не существует.")
-    void update_shouldReturnFalseForNonExistentFoodCategory() throws SQLException {
-        FoodCategory nonExistentCategory = new FoodCategory(999L, "Несуществующая категория");
+    void update_shouldReturnFalseForNonExistentFoodCategory() {
+        FoodCategory nonExistentCategory = new FoodCategory(999L, "Несуществующее имя");
         boolean updated = foodCategoryDao.update(nonExistentCategory);
         assertFalse(updated, "Update должен вернуть false для несуществующей food category");
     }
 
     @Test
     @DisplayName("Метод delete должен успешно удалить food category.")
-    void delete_shouldDeleteFoodCategory() throws SQLException {
+    void delete_shouldDeleteFoodCategory() {
         FoodCategory category = new FoodCategory("Мясо");
         FoodCategory savedCategory = foodCategoryDao.save(category);
 
@@ -162,14 +162,14 @@ public class FoodCategoryDaoTest {
 
     @Test
     @DisplayName("Метод delete должен вернуть false если food category не существует.")
-    void delete_shouldReturnFalseForNonExistentFoodCategory() throws SQLException {
+    void delete_shouldReturnFalseForNonExistentFoodCategory() {
         boolean deleted = foodCategoryDao.delete(999L);
         assertFalse(deleted, "Delete должен вернуть false для несуществующей food category");
     }
 
     @Test
     @DisplayName("Метод findAll должен возвращать все существующие food category.")
-    void findAll_shouldReturnAllFoodCategories() throws SQLException {
+    void findAll_shouldReturnAllFoodCategories() {
         FoodCategory category1 = new FoodCategory("Мясо");
         FoodCategory category2 = new FoodCategory("Рыба");
         FoodCategory category3 = new FoodCategory("Овощи");
@@ -189,7 +189,7 @@ public class FoodCategoryDaoTest {
 
     @Test
     @DisplayName("Метод findAll должен возвращать пустой список, если food category нет.")
-    void findAll_shouldReturnEmptyListIfNoCategories() throws SQLException {
+    void findAll_shouldReturnEmptyListIfNoCategories() {
         List<FoodCategory> allCategories = foodCategoryDao.findAll();
         assertNotNull(allCategories);
         assertTrue(allCategories.isEmpty(), "Метод findAll должен вернуть пустой список если food category нет.");

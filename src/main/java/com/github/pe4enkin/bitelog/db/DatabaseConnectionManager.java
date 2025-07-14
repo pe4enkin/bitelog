@@ -31,6 +31,11 @@ public class DatabaseConnectionManager {
 
     private static DataSource createDataSource(String path)  throws SQLException {
         SQLiteDataSource sqLiteDataSource = new SQLiteDataSource();
+
+        SQLiteConfig config = new SQLiteConfig();
+        config.enforceForeignKeys(true);
+        sqLiteDataSource.setConfig(config);
+
         String url = "jdbc:sqlite:" + path;
         sqLiteDataSource.setUrl(url);
 
