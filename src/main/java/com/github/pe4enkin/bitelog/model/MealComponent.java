@@ -11,6 +11,11 @@ public class MealComponent {
         this.amountInGrams = amountInGrams;
     }
 
+    public MealComponent(long foodItemId, double amountInGrams) {
+        this.foodItemId = foodItemId;
+        this.amountInGrams = amountInGrams;
+    }
+
     public long getId() {
         return id;
     }

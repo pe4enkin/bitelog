@@ -2,6 +2,7 @@ package com.github.pe4enkin.bitelog.model;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MealEntry {
@@ -9,18 +10,18 @@ public class MealEntry {
     private LocalDate date;
     private LocalTime time;
     private MealCategory mealCategory;
-    private List<MealComponent> components;
     private double totalCalories;
     private String notes;
+    private List<MealComponent> components;
 
-    public MealEntry(long id, LocalDate date, LocalTime time, MealCategory mealCategory, List<MealComponent> components, double totalCalories, String notes) {
-        this.id = id;
-        this.date = date;
-        this.time = time;
-        this.mealCategory = mealCategory;
-        this.components = components;
-        this.totalCalories = totalCalories;
-        this.notes = notes;
+    private MealEntry(Builder builder) {
+        this.id = builder.id;
+        this.date = builder.date;
+        this.time = builder.time;
+        this.mealCategory = builder.mealCategory;
+        this.totalCalories = builder.totalCalories;
+        this.notes = builder.notes;
+        this.components = builder.components;
     }
 
     public long getId() {
@@ -59,15 +60,6 @@ public class MealEntry {
         return this;
     }
 
-    public List<MealComponent> getComponents() {
-        return components;
-    }
-
-    public MealEntry setComponents(List<MealComponent> components) {
-        this.components = components;
-        return this;
-    }
-
     public double getTotalCalories() {
         return totalCalories;
     }
@@ -83,6 +75,15 @@ public class MealEntry {
 
     public MealEntry setNotes(String notes) {
         this.notes = notes;
+        return this;
+    }
+
+    public List<MealComponent> getComponents() {
+        return components;
+    }
+
+    public MealEntry setComponents(List<MealComponent> components) {
+        this.components = components;
         return this;
     }
 
@@ -105,9 +106,58 @@ public class MealEntry {
                 ", date=" + date +
                 ", time=" + time +
                 ", mealCategory=" + mealCategory +
-                ", components=" + components +
-                ", totalCalories=" + totalCalories +
                 ", notes='" + notes + '\'' +
+                ", totalCalories=" + totalCalories +
+                ", components=" + components +
                 '}';
+    }
+
+    public static class Builder {
+        private long id;
+        private LocalDate date;
+        private LocalTime time;
+        private MealCategory mealCategory;
+        private double totalCalories;
+        private String notes;
+        private List<MealComponent> components;
+
+        public Builder setId(long id) {
+            this.id = id;
+            return this;
+        }
+
+        public Builder setDate(LocalDate date) {
+            this.date = date;
+            return this;
+        }
+
+        public Builder setTime(LocalTime time) {
+            this.time = time;
+            return this;
+        }
+
+        public Builder setMealCategory(MealCategory mealCategory) {
+            this.mealCategory = mealCategory;
+            return this;
+        }
+
+        public Builder setTotalCalories(double totalCalories) {
+            this.totalCalories = totalCalories;
+            return this;
+        }
+
+        public Builder setNotes(String notes) {
+            this.notes = notes;
+            return this;
+        }
+
+        public Builder setComponents(List<MealComponent> components) {
+            this.components = (components != null) ? new ArrayList<>(components) : new ArrayList<>();
+            return this;
+        }
+
+        public MealEntry build() {
+            return new MealEntry(this);
+        }
     }
 }

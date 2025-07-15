@@ -1,6 +1,5 @@
 package com.github.pe4enkin.bitelog.dao;
 
-import com.github.pe4enkin.bitelog.dao.exception.DataAccessException;
 import com.github.pe4enkin.bitelog.dao.exception.DuplicateKeyException;
 import com.github.pe4enkin.bitelog.dao.exception.ForeignKeyViolationException;
 import com.github.pe4enkin.bitelog.db.DatabaseConnectionManager;

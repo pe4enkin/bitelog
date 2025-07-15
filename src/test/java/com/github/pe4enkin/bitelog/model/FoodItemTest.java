@@ -46,11 +46,11 @@ class FoodItemTest {
     void testBuilderCreatesCompositeFoodItemWithAllFields() {
         FoodCategory foodCategory = new FoodCategory(2, "Салаты");
         FoodComponent component1 = new FoodComponent(1,  2, 100.0);
-        FoodComponent component2 = new FoodComponent(1,  3, 200.0);
+        FoodComponent component2 = new FoodComponent(2,  3, 200.0);
         List<FoodComponent> components = Arrays.asList(component1, component2);
 
         FoodItem foodItem = new FoodItem.Builder()
-                .setId(2)
+                .setId(1)
                 .setName("Салат")
                 .setCaloriesPer100g(100.0)
                 .setServingSizeInGrams(200.0)
@@ -63,7 +63,7 @@ class FoodItemTest {
                 .setComponents(components)
                 .build();
 
-        assertEquals(2, foodItem.getId());
+        assertEquals(1, foodItem.getId());
         assertEquals("Салат", foodItem.getName());
         assertEquals(100.0, foodItem.getCaloriesPer100g(), 0.001);
         assertEquals(200.0, foodItem.getServingSizeInGrams(), 0.001);
@@ -75,15 +75,16 @@ class FoodItemTest {
         assertEquals(foodCategory, foodItem.getFoodCategory());
         assertNotNull(foodItem.getComponents());
         assertEquals(components, foodItem.getComponents());
+        assertNotSame(components, foodItem.getComponents());
     }
 
     @Test
     @DisplayName("Проверка equals и hashCode при равенстве ID")
     void testEqualsAndHashCodeEqualById() {
         FoodCategory foodCategory1 = new FoodCategory(1, "Мясо");
-        FoodCategory foodCategory2 = new FoodCategory(1, "Салаты");
+        FoodCategory foodCategory2 = new FoodCategory(2, "Салаты");
         FoodComponent component1 = new FoodComponent(1, 2, 100.0);
-        FoodComponent component2 = new FoodComponent(1, 3, 200.0);
+        FoodComponent component2 = new FoodComponent(2, 3, 200.0);
         List<FoodComponent> components = Arrays.asList(component1, component2);
         
         FoodItem foodItem1 = new FoodItem.Builder()

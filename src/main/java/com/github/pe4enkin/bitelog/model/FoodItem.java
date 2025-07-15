@@ -1,5 +1,6 @@
 package com.github.pe4enkin.bitelog.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class FoodItem {
@@ -221,7 +222,7 @@ public class FoodItem {
         }
 
         public Builder setComponents(List<FoodComponent> components) {
-            this.components = components;
+            this.components = (components != null) ? new ArrayList<>(components) : null;
             return this;
         }
 
