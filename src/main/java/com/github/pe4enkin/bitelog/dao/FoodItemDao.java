@@ -29,7 +29,7 @@ public class FoodItemDao {
              Statement stmt = connection.createStatement()) {
             stmt.execute(SqlQueries.CREATE_FOOD_ITEMS_TABLE);
             stmt.execute(SqlQueries.CREATE_FOOD_COMPONENTS_TABLE);
-            LOGGER.info("Таблицы food_items и food_components успешно созданы (или уже существовали)");
+            LOGGER.info("Таблицы food_items и food_components успешно созданы (или уже существовали).");
         } catch (SQLException e) {
             LOGGER.error("Ошибка при создании таблиц food_items и food_components. SQLState: {}, ErrorCode: {}, message: {}",
                     e.getSQLState(), e.getErrorCode(), e.getMessage(), e);

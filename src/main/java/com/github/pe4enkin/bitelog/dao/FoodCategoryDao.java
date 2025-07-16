@@ -28,7 +28,7 @@ public class FoodCategoryDao {
         try (Connection connection = dataSource.getConnection();
              Statement stmt = connection.createStatement()) {
             stmt.execute(SqlQueries.CREATE_FOOD_CATEGORIES_TABLE);
-            LOGGER.info("Таблица food_categories успешно создана (или уже существовала)");
+            LOGGER.info("Таблица food_categories успешно создана (или уже существовала).");
         } catch (SQLException e) {
             LOGGER.error("Ошибка при создании таблицы food_categories. SQLState: {}, ErrorCode: {}, message: {}",
                    e.getSQLState(), e.getErrorCode(), e.getMessage(), e);

@@ -35,6 +35,27 @@ public class SqlQueries {
             )
             """;
 
+    public static final String CREATE_MEAL_ENTRIES_TABLE = """
+            CREATE TABLE IF NOT EXISTS meal_entries (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                date DATE NOT NULL,
+                time TIME NOT NULL,
+                meal_category VARCHAR(50) NOT NULL,
+                notes TEXT
+            )
+            """;
+
+    public static final String CREATE_MEAL_COMPONENTS_TABLE = """
+            CREATE TABLE IF NOT EXISTS meal_components (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                meal_entry_id INTEGER NOT NULL,
+                food_item_id INTEGER NOT NULL,
+                amount_in_grams REAL NOT NULL,
+                FOREIGN KEY (meal_entry_id) REFERENCES meal_entries(id) ON DELETE CASCADE,
+                FOREIGN KEY (food_item_id) REFERENCES food_items(id) ON DELETE RESTRICT
+            )
+            """;
+
     public static final String INSERT_FOOD_ITEM = """
             INSERT INTO food_items (name, calories_per_100g, serving_size_in_grams, unit, proteins_per_100g,
                                     fats_per_100g, carbs_per_100g, is_composite, food_category_id)
