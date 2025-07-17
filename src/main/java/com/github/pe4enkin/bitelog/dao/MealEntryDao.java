@@ -1,14 +1,16 @@
 package com.github.pe4enkin.bitelog.dao;
 
+import com.github.pe4enkin.bitelog.dao.exception.DataAccessException;
 import com.github.pe4enkin.bitelog.dao.util.SqlExceptionTranslator;
+import com.github.pe4enkin.bitelog.model.MealComponent;
+import com.github.pe4enkin.bitelog.model.MealEntry;
 import com.github.pe4enkin.bitelog.sql.SqlQueries;
+import com.github.pe4enkin.bitelog.util.DateTimeFormatterUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 public class MealEntryDao {
     private static final Logger LOGGER = LoggerFactory.getLogger(MealEntryDao.class);
@@ -28,6 +30,95 @@ public class MealEntryDao {
             LOGGER.error("Ошибка при создании таблиц meal_entries и meal_components. SQLState: {}, ErrorCode: {}, message: {}",
                     e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
             throw SqlExceptionTranslator.translate(e, "создании таблиц meal_entries и meal_components");
+        }
+    }
+
+    public MealEntry save(MealEntry mealEntry) {
+        Connection connection = null;
+        String logMealDateTime = DateTimeFormatterUtil.formatDateTime(mealEntry.getDate(), mealEntry.getTime());
+        try {
+            connection = dataSource.getConnection();
+            connection.setAutoCommit(false);
+
+            try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.INSERT_MEAL_ENTRY, Statement.RETURN_GENERATED_KEYS)) {
+                pstmt.setDate(1, Date.valueOf(mealEntry.getDate()));
+                pstmt.setTime(2, Time.valueOf(mealEntry.getTime()));
+                pstmt.setString(3, mealEntry.getMealCategory().getName());
+                pstmt.setString(4, mealEntry.getNotes());
+
+                int affectedRows = pstmt.executeUpdate();
+                if (affectedRows == 0) {
+                    LOGGER.error("Создание meal entry от {} не удалось, 0 затронутых строк.", logMealDateTime);
+                    throw new DataAccessException("Создание meal entry от " + logMealDateTime + " не удалось, 0 затронутых строк.");
+                }
+
+                try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        mealEntry.setId(generatedKeys.getLong(1));
+                        LOGGER.info("MealEntry от {} сохранен с ID {}", logMealDateTime, mealEntry.getId());
+                    } else {
+                        LOGGER.error("Сохранение MealEntry не удалось, ID не было получено для {}", logMealDateTime);
+                        throw new DataAccessException("Сохранение MealEntry не удалось, ID не было получено.");
+                    }
+                }
+            }
+
+            if (!mealEntry.getComponents().isEmpty()) {
+                for (MealComponent component : mealEntry.getComponents()) {
+                    if (component.getFoodItemId() == 0) {
+                        LOGGER.error("Обнаружен MealComponent c ID продукта 0 при сохранении meal entry от {}", logMealDateTime);
+                        throw new DataAccessException("Создание meal component при сохранении meal entry от " + logMealDateTime + " не удалось, обнаружен компонент с ID продукта 0");
+                    }
+                    try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.INSERT_MEAL_COMPONENT, Statement.RETURN_GENERATED_KEYS)) {
+                        pstmt.setLong(1, mealEntry.getId());
+                        pstmt.setLong(2, component.getFoodItemId());
+                        pstmt.setDouble(3, component.getAmountInGrams());
+
+                        int affectedRows = pstmt.executeUpdate();
+                        if (affectedRows == 0) {
+                            LOGGER.error("Создание meal component c id продукта {} при сохранении meal entry от {} не удалось, 0 затронутых строк.", component.getFoodItemId(), logMealDateTime);
+                            throw new DataAccessException("Создание meal component для meal entry от " + logMealDateTime + " не удалось, 0 затронутых строк.");
+                        }
+                        try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                            if (generatedKeys.next()) {
+                                component.setId(generatedKeys.getLong(1));
+                                LOGGER.debug("MealComponent с ID продукта {} при сохранении meal entry от {} сохранен с ID {}",
+                                        component.getFoodItemId(), logMealDateTime, component.getId());
+                            } else {
+                                LOGGER.error("Создание MealComponent при сохранении meal entry от {} не удалось, ID не было получено для компонента с ID продукта {}",
+                                        logMealDateTime, component.getFoodItemId());
+                                throw new DataAccessException("Сохранение MealComponent не удалось, ID не было получено.");
+                            }
+                        }
+                    }
+                }
+                LOGGER.info("Сохранено {} компонентов при сохранении meal entry от {}", mealEntry.getComponents().size(), logMealDateTime);
+            }
+            connection.commit();
+            return mealEntry;
+        } catch (SQLException e) {
+            LOGGER.error("Ошибка при сохранении MealEntry от {}. SQLState: {}, ErrorCode: {}, message: {}",
+                    logMealDateTime, e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
+            if (connection != null) {
+                try {
+                    connection.rollback();
+                    LOGGER.warn("Откат транзакции после неудачного сохранения MealEntry от {}", logMealDateTime);
+                } catch (SQLException rollbackEx) {
+                    LOGGER.error("Ошибка при откате транзакции после неудачного сохранения MealEntry от {}. SQLState: {}, ErrorCode: {}, message: {}",
+                            logMealDateTime, rollbackEx.getSQLState(), rollbackEx.getErrorCode(), rollbackEx.getMessage(), rollbackEx);
+                }
+            }
+            throw SqlExceptionTranslator.translate(e, "сохранении MealEntry от " + logMealDateTime);
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.setAutoCommit(true);
+                    connection.close();
+                } catch (SQLException closeEx) {
+                    LOGGER.error("Ошибка при попытке закрытия соединения после сохранения MealEntry от {}. SQLState: {}, ErrorCode: {}, message: {}",
+                            logMealDateTime, closeEx.getSQLState(), closeEx.getErrorCode(), closeEx.getMessage(), closeEx);
+                }
+            }
         }
     }
 }

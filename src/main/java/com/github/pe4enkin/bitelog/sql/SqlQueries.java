@@ -72,6 +72,16 @@ public class SqlQueries {
             VALUES (?)
             """;
 
+    public static final String INSERT_MEAL_ENTRY = """
+            INSERT INTO meal_entries (date, time, meal_category, notes)
+            VALUES (?, ?, ?, ?)
+            """;
+
+    public static final String INSERT_MEAL_COMPONENT = """
+            INSERT INTO meal_components (meal_entry_id, food_item_id, amount_in_grams)
+            VALUES (?, ?, ?)
+            """;
+
     public static final String SELECT_FOOD_ITEM_BY_ID = """
             SELECT fi.id, fi.name, fi.calories_per_100g, fi.serving_size_in_grams, fi.unit,
                    fi.proteins_per_100g, fi.fats_per_100g, fi.carbs_per_100g, fi.is_composite,

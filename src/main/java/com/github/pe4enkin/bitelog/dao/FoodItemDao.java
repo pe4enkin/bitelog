@@ -74,8 +74,8 @@ public class FoodItemDao {
             if (foodItem.isComposite() && foodItem.getComponents() != null && !foodItem.getComponents().isEmpty()) {
                 for (FoodComponent component : foodItem.getComponents()) {
                     if (component.getIngredientFoodItemId() == 0) {
-                        LOGGER.error("Обнаружен FoodComponent c ID 0 при сохранении food item {}", foodItem.getName());
-                        throw new DataAccessException("Создание food component при сохранении food item" + foodItem.getName() + " не удалось, обнаружен компонент с ID 0");
+                        LOGGER.error("Обнаружен FoodComponent c ID ингредиента 0 при сохранении food item {}", foodItem.getName());
+                        throw new DataAccessException("Создание food component при сохранении food item" + foodItem.getName() + " не удалось, обнаружен компонент с ID ингредиента 0");
                     }
                     try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.INSERT_FOOD_COMPONENT, Statement.RETURN_GENERATED_KEYS)) {
                         pstmt.setLong(1, foodItem.getId());
@@ -84,16 +84,16 @@ public class FoodItemDao {
 
                         int affectedRows = pstmt.executeUpdate();
                         if (affectedRows == 0) {
-                            LOGGER.error("Создание food component c id {} при сохранении food item {} не удалось, 0 затронутых строк.", component.getIngredientFoodItemId() ,foodItem.getName());
+                            LOGGER.error("Создание food component c ID ингредиента {} при сохранении food item {} не удалось, 0 затронутых строк.", component.getIngredientFoodItemId() ,foodItem.getName());
                             throw new DataAccessException("Создание food component для food item " + foodItem.getName() + " не удалось, 0 затронутых строк.");
                         }
                         try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
                             if (generatedKeys.next()) {
                                 component.setId(generatedKeys.getLong(1));
-                                LOGGER.debug("FoodComponent {} при сохранении food item {} сохранен с ID {}",
+                                LOGGER.debug("FoodComponent с ID ингредиента {} при сохранении food item {} сохранен с ID {}",
                                         component.getIngredientFoodItemId(), foodItem.getName(), component.getId());
                             } else {
-                                LOGGER.error("Создание food component при сохранении food item {} не удалось, ID не было получено для {}",
+                                LOGGER.error("Создание FoodComponent при сохранении food item {} не удалось, ID не было получено для компонента с ID ингредиента {}",
                                         foodItem.getName(), component.getIngredientFoodItemId());
                                 throw new DataAccessException("Сохранение FoodComponent не удалось, ID не было получено.");
                             }
@@ -281,8 +281,8 @@ public class FoodItemDao {
             if (foodItem.isComposite() && foodItem.getComponents() != null && !foodItem.getComponents().isEmpty()) {
                 for (FoodComponent component : foodItem.getComponents()) {
                     if (component.getIngredientFoodItemId() == 0) {
-                        LOGGER.error("Обнаружен FoodComponent c ID 0 при обновлении food item {}", foodItem.getName());
-                        throw new DataAccessException("Создание food component при сохранении food item" + foodItem.getName() + " не удалось, обнаружен компонент с ID 0");
+                        LOGGER.error("Обнаружен FoodComponent c ID ингредиента 0 при обновлении food item {}", foodItem.getName());
+                        throw new DataAccessException("Создание food component при сохранении food item" + foodItem.getName() + " не удалось, обнаружен компонент с ID ингредиента 0");
                     }
                     try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.INSERT_FOOD_COMPONENT, Statement.RETURN_GENERATED_KEYS)) {
                         pstmt.setLong(1, foodItem.getId());
@@ -297,9 +297,9 @@ public class FoodItemDao {
                         try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
                             if (generatedKeys.next()) {
                                 component.setId(generatedKeys.getLong(1));
-                                LOGGER.debug("FoodComponent {} при обновлении food item {} сохранен с ID {}", component.getIngredientFoodItemId(), foodItem.getName() ,component.getId());
+                                LOGGER.debug("FoodComponent c ID ингредиента {} при обновлении food item {} сохранен с ID {}", component.getIngredientFoodItemId(), foodItem.getName() ,component.getId());
                             } else {
-                                LOGGER.error("Создание FoodComponent при обновлении food item {} не удалось, ID не было получено для {}",
+                                LOGGER.error("Создание FoodComponent при обновлении food item {} не удалось, ID не было получено для компонента с ID ингредиента {}",
                                         foodItem.getName(),component.getIngredientFoodItemId());
                                 throw new DataAccessException("Создание FoodComponent не удалось, ID не было получено.");
                             }
