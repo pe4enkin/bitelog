@@ -172,6 +172,15 @@ public class SqlQueries {
             WHERE id = ?
             """;
 
+    public static final String UPDATE_MEAL_ENTRY = """
+            UPDATE meal_entries SET
+                date = ?,
+                time = ?,
+                meal_category = ?,
+                notes = ?
+            WHERE id = ?
+            """;
+
     public static final String DELETE_FOOD_ITEM = """
             DELETE FROM food_items
             WHERE id = ?
@@ -185,6 +194,11 @@ public class SqlQueries {
     public static final String DELETE_FOOD_COMPONENT = """
             DELETE FROM food_components
             WHERE parent_food_item_id = ?
+            """;
+
+    public static final String DELETE_MEAL_COMPONENT = """
+            DELETE FROM meal_components
+            WHERE meal_entry_id = ?
             """;
 
     public static final String DROP_TABLE_FOOD_ITEMS = """
