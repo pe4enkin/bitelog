@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -308,5 +309,48 @@ public class MealEntryDao {
                 }
             }
         }
+    }
+
+    public List<MealEntry> findAllByDate(LocalDate searchDate) {
+        List<MealEntry> mealEntries = new ArrayList<>();
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SqlQueries.SELECT_ALL_MEAL_ENTRIES_BY_DATE)) {
+            pstmt.setDate(1, Date.valueOf(searchDate));
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    Date date = rs.getDate("date");
+                    Time time = rs.getTime("time");
+                    MealEntry mealEntry = new MealEntry.Builder()
+                            .setId(rs.getLong("id"))
+                            .setDate(date != null ? date.toLocalDate() : null)
+                            .setTime(time != null ? time.toLocalTime() : null)
+                            .setMealCategory(MealCategory.valueOf(rs.getString("meal_category")))
+                            .setNotes(rs.getString("notes"))
+                            .build();
+                    List<MealComponent> components = new ArrayList<>();
+                    try (PreparedStatement pstmtComponents = connection.prepareStatement(SqlQueries.SELECT_MEAL_COMPONENT)) {
+                        pstmtComponents.setLong(1, mealEntry.getId());
+                        try (ResultSet rsComponents = pstmtComponents.executeQuery()) {
+                            while (rsComponents.next()) {
+                                components.add(new MealComponent(
+                                        rsComponents.getLong("id"),
+                                        rsComponents.getLong("food_item_id"),
+                                        rsComponents.getDouble("amount_in_grams")
+                                ));
+                            }
+                        }
+                    }
+                    mealEntry.setComponents(components);
+                    mealEntries.add(mealEntry);
+                }
+                LOGGER.debug("Получено {} meal entries из БД на дату {}.", mealEntries.size(), DateTimeFormatterUtil.formatDateWithDots(searchDate));
+            }
+        } catch (SQLException e) {
+            LOGGER.error("Ошибка при получении MealEntries на дату {} из БД. SQLState: {}, ErrorCode: {}, message: {}",
+                    DateTimeFormatterUtil.formatDateWithDots(searchDate), e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
+            throw SqlExceptionTranslator.translate(e, "получении MealEntries на дату из БД.");
+        }
+        return mealEntries;
     }
 }

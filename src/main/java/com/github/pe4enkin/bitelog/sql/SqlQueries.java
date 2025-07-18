@@ -139,6 +139,13 @@ public class SqlQueries {
             FROM meal_entries
             WHERE id = ?
             """;
+
+    public static final String SELECT_ALL_MEAL_ENTRIES_BY_DATE = """
+            SELECT id, date, time, meal_category, notes
+            FROM meal_entries
+            WHERE date = ?
+            """;
+
     public static final String SELECT_MEAL_COMPONENT = """
             SELECT id, meal_entry_id, food_item_id, amount_in_grams
             FROM meal_components
