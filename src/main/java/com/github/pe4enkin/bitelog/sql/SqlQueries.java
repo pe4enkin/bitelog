@@ -196,6 +196,11 @@ public class SqlQueries {
             WHERE parent_food_item_id = ?
             """;
 
+    public static final String DELETE_MEAL_ENTRY = """
+            DELETE FROM meal_entries
+            WHERE id = ?
+            """;
+
     public static final String DELETE_MEAL_COMPONENT = """
             DELETE FROM meal_components
             WHERE meal_entry_id = ?

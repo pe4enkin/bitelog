@@ -263,4 +263,50 @@ public class MealEntryDao {
             }
         }
     }
+
+    public boolean delete(long id) {
+        Connection connection = null;
+
+        try {
+            connection = dataSource.getConnection();
+            connection.setAutoCommit(false);
+
+            try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.DELETE_MEAL_ENTRY)) {
+                pstmt.setLong(1, id);
+                int affectedRows = pstmt.executeUpdate();
+                if (affectedRows == 0) {
+                    connection.rollback();
+                    LOGGER.warn("meal entry с ID {} для удаления не найжден.", id);
+                    return false;
+                } else {
+                    LOGGER.info("meal entry c ID {} успешно удален.", id);
+                    connection.commit();
+                    return true;
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.error("Ошибка при удалении MealEntry с ID {}. SQLState: {}, ErrorCode: {}, message: {}",
+                    id, e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
+            if (connection != null) {
+                try {
+                    connection.rollback();
+                    LOGGER.warn("Откат транзакции после неудачного удаления MealEntry с ID {}", id);
+                } catch (SQLException rollbackEx) {
+                    LOGGER.error("Ошибка при откате транзакции после неудачного удаления MealEntry с ID {}. SQLState: {}, ErrorCode: {}, message: {}",
+                            id, rollbackEx.getSQLState(), rollbackEx.getErrorCode(), rollbackEx.getMessage(), e);
+                }
+            }
+            throw SqlExceptionTranslator.translate(e, "удалении MealEntry с ID " + id);
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.setAutoCommit(true);
+                    connection.close();
+                } catch (SQLException closeEx) {
+                    LOGGER.error("Ошибка при попытке закрытия соединения после удаления MealEntry c ID {}. SQLState: {}, ErrorCode: {}, message: {}",
+                            id, closeEx.getSQLState(), closeEx.getErrorCode(), closeEx.getMessage(), closeEx);
+                }
+            }
+        }
+    }
 }
