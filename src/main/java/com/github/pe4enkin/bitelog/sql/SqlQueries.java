@@ -112,12 +112,9 @@ public class SqlQueries {
             """;
 
     public static final String SELECT_FOOD_COMPONENT = """
-            SELECT fc.id, fc.parent_food_item_id, fc.ingredient_food_item_id, fc.amount_in_grams,
-                   fi.name AS component_name
-            FROM food_components fc
-            JOIN food_items fi
-            ON fc.ingredient_food_item_id = fi.id
-            WHERE fc.parent_food_item_id = ?
+            SELECT id, parent_food_item_id, ingredient_food_item_id, amount_in_grams
+            FROM food_components
+            WHERE parent_food_item_id = ?
             """;
 
     public static final String SELECT_FOOD_CATEGORY_BY_ID = """
@@ -135,6 +132,17 @@ public class SqlQueries {
     public static final String SELECT_ALL_FOOD_CATEGORY = """
             SELECT id, name
             FROM food_categories
+            """;
+
+    public static final String SELECT_MEAL_ENTRY_BY_ID = """
+            SELECT id, date, time, meal_category, notes
+            FROM meal_entries
+            WHERE id = ?
+            """;
+    public static final String SELECT_MEAL_COMPONENT = """
+            SELECT id, meal_entry_id, food_item_id, amount_in_grams
+            FROM meal_components
+            WHERE meal_entry_id = ?
             """;
 
     public static final String SELECT_TABLE_NAME = """

@@ -2,6 +2,7 @@ package com.github.pe4enkin.bitelog.dao;
 
 import com.github.pe4enkin.bitelog.dao.exception.DataAccessException;
 import com.github.pe4enkin.bitelog.dao.util.SqlExceptionTranslator;
+import com.github.pe4enkin.bitelog.model.MealCategory;
 import com.github.pe4enkin.bitelog.model.MealComponent;
 import com.github.pe4enkin.bitelog.model.MealEntry;
 import com.github.pe4enkin.bitelog.sql.SqlQueries;
@@ -11,6 +12,9 @@ import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 public class MealEntryDao {
     private static final Logger LOGGER = LoggerFactory.getLogger(MealEntryDao.class);
@@ -120,5 +124,50 @@ public class MealEntryDao {
                 }
             }
         }
+    }
+
+    public Optional<MealEntry> findById(long id) {
+        MealEntry mealEntry = null;
+
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement pstmt = connection.prepareStatement(SqlQueries.SELECT_MEAL_ENTRY_BY_ID)) {
+            pstmt.setLong(1, id);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    Date date = rs.getDate("date");
+                    Time time = rs.getTime("time");
+                    mealEntry = new MealEntry.Builder()
+                            .setId(rs.getLong("id"))
+                            .setDate(date != null ? date.toLocalDate() : null)
+                            .setTime(time != null ? time.toLocalTime() : null)
+                            .setMealCategory(MealCategory.valueOf(rs.getString("meal_category")))
+                            .setNotes(rs.getString("notes"))
+                            .build();
+
+                    List<MealComponent> components = new ArrayList<>();
+                    try (PreparedStatement pstmtComponents = connection.prepareStatement(SqlQueries.SELECT_MEAL_COMPONENT)) {
+                        pstmtComponents.setLong(1, mealEntry.getId());
+                        try (ResultSet rsComponents = pstmtComponents.executeQuery()) {
+                            while (rsComponents.next()) {
+                                components.add(new MealComponent(
+                                        rsComponents.getLong("id"),
+                                        rsComponents.getLong("food_item_id"),
+                                        rsComponents.getDouble("amount_in_grams")
+                                ));
+                            }
+                        }
+                    }
+                    mealEntry.setComponents(components);
+                    LOGGER.debug("Найден meal entry от {} по ID {}", DateTimeFormatterUtil.formatDateTime(mealEntry.getDate(), mealEntry.getTime()), id);
+                } else {
+                    LOGGER.debug("meal entry c ID {} не найден.", id);
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.error("Ошибка при поиске MealEntry c ID {}. SQLState: {}, ErrorCode: {}, message: {}",
+                    id, e.getSQLState(), e.getErrorCode(), e.getMessage(), e);
+            throw SqlExceptionTranslator.translate(e, "поиске MealEntry c ID " + id);
+        }
+        return Optional.ofNullable(mealEntry);
     }
 }
