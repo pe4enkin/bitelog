@@ -48,7 +48,7 @@ public class MealEntryDao {
             try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.INSERT_MEAL_ENTRY, Statement.RETURN_GENERATED_KEYS)) {
                 pstmt.setDate(1, Date.valueOf(mealEntry.getDate()));
                 pstmt.setTime(2, Time.valueOf(mealEntry.getTime()));
-                pstmt.setString(3, mealEntry.getMealCategory().getName());
+                pstmt.setString(3, mealEntry.getMealCategory().name());
                 pstmt.setString(4, mealEntry.getNotes());
 
                 int affectedRows = pstmt.executeUpdate();
@@ -183,7 +183,7 @@ public class MealEntryDao {
             try (PreparedStatement pstmt = connection.prepareStatement(SqlQueries.UPDATE_MEAL_ENTRY)) {
                 pstmt.setDate(1, Date.valueOf(mealEntry.getDate()));
                 pstmt.setTime(2, Time.valueOf(mealEntry.getTime()));
-                pstmt.setString(3, mealEntry.getMealCategory().getName());
+                pstmt.setString(3, mealEntry.getMealCategory().name());
                 pstmt.setString(4, mealEntry.getNotes());
                 pstmt.setLong(5, mealEntry.getId());
 

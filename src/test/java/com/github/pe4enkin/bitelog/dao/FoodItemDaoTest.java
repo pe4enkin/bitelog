@@ -3,10 +3,7 @@ package com.github.pe4enkin.bitelog.dao;
 import com.github.pe4enkin.bitelog.dao.exception.DuplicateKeyException;
 import com.github.pe4enkin.bitelog.dao.exception.ForeignKeyViolationException;
 import com.github.pe4enkin.bitelog.db.DatabaseConnectionManager;
-import com.github.pe4enkin.bitelog.model.FoodCategory;
-import com.github.pe4enkin.bitelog.model.FoodComponent;
-import com.github.pe4enkin.bitelog.model.FoodItem;
-import com.github.pe4enkin.bitelog.model.Unit;
+import com.github.pe4enkin.bitelog.model.*;
 import com.github.pe4enkin.bitelog.sql.SqlQueries;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,6 +12,8 @@ import org.junit.jupiter.api.Test;
 
 import javax.sql.DataSource;
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -36,8 +35,8 @@ public class FoodItemDaoTest {
         foodItemDao = new FoodItemDao(testDataSource);
         foodCategoryDao = new FoodCategoryDao(testDataSource);
         try (Statement stmt = testConnection.createStatement()) {
-            stmt.execute(SqlQueries.DROP_TABLE_FOOD_ITEMS);
             stmt.execute(SqlQueries.DROP_TABLE_FOOD_COMPONENTS);
+            stmt.execute(SqlQueries.DROP_TABLE_FOOD_ITEMS);
             stmt.execute(SqlQueries.DROP_TABLE_FOOD_CATEGORIES);
         }
         foodItemDao.createTables();
@@ -52,6 +51,18 @@ public class FoodItemDaoTest {
         }
         DatabaseConnectionManager.resetToDefault();
         DatabaseConnectionManager.closeDataSource();
+    }
+
+    private int countFoodComponentsByParentId(long parentFoodItemId) throws SQLException {
+        try (PreparedStatement pstmt = testConnection.prepareStatement(SqlQueries.SELECT_COUNT_FOOD_COMPONENTS)) {
+            pstmt.setLong(1, parentFoodItemId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        }
+        return -1;
     }
 
     @Test
@@ -119,7 +130,7 @@ public class FoodItemDaoTest {
         FoodItem savedSugar = foodItemDao.save(sugar);
         FoodComponent component1 = new FoodComponent(savedFlour.getId(), 150.0);
         FoodComponent component2 = new FoodComponent(savedSugar.getId(), 50.0);
-        List<FoodComponent> components = Arrays.asList(component1, component2);
+        List<FoodComponent> components = List.of(component1, component2);
 
         FoodItem item = new FoodItem.Builder()
                 .setName("Тесто")
@@ -288,7 +299,7 @@ public class FoodItemDaoTest {
         FoodItem savedSugar = foodItemDao.save(sugar);
         FoodComponent component1 = new FoodComponent(savedFlour.getId(), 150.0);
         FoodComponent component2 = new FoodComponent(savedSugar.getId(), 50.0);
-        List<FoodComponent> components = Arrays.asList(component1, component2);
+        List<FoodComponent> components = List.of(component1, component2);
 
         FoodItem item = new FoodItem.Builder()
                 .setName("Тесто")
@@ -330,7 +341,7 @@ public class FoodItemDaoTest {
             Long ingredientId = entry.getKey();
             FoodComponent expectedComponent = entry.getValue();
 
-            assertTrue(actualComponentMap.containsKey(ingredientId), "Компонент у найденного FoodIten должен содержать ингредиент с ID " + ingredientId);
+            assertTrue(actualComponentMap.containsKey(ingredientId), "Компонент у найденного FoodItem должен содержать ингредиент с ID " + ingredientId);
             FoodComponent actualComponent = actualComponentMap.get(ingredientId);
             assertEquals(expectedComponent.getId(), actualComponent.getId(), "Список компонентов найденного FoodItem должен сохранить ID компонентов.");
             assertEquals(expectedComponent.getIngredientFoodItemId(), actualComponent.getIngredientFoodItemId(), "Список компонентов найденного FoodItem должен сохранить ID ингредиентов.");
@@ -411,7 +422,7 @@ public class FoodItemDaoTest {
         FoodItem savedSugar = foodItemDao.save(sugar);
         FoodComponent component1 = new FoodComponent(savedFlour.getId(), 150.0);
         FoodComponent component2 = new FoodComponent(savedSugar.getId(), 50.0);
-        List<FoodComponent> components = Arrays.asList(component1, component2);
+        List<FoodComponent> components = List.of(component1, component2);
 
         FoodItem item = new FoodItem.Builder()
                 .setName("Тесто")
@@ -561,7 +572,7 @@ public class FoodItemDaoTest {
         FoodItem savedSugar = foodItemDao.save(sugar);
         FoodComponent component1 = new FoodComponent(savedFlour.getId(), 150.0);
         FoodComponent component2 = new FoodComponent(savedSugar.getId(), 50.0);
-        List<FoodComponent> components = Arrays.asList(component1, component2);
+        List<FoodComponent> components = List.of(component1, component2);
 
         FoodCategory updatedCategory = foodCategoryDao.save(new FoodCategory("Обновленная категория"));
 
@@ -636,7 +647,7 @@ public class FoodItemDaoTest {
         FoodItem savedSugar = foodItemDao.save(sugar);
         FoodComponent component1 = new FoodComponent(savedFlour.getId(), 150.0);
         FoodComponent component2 = new FoodComponent(savedSugar.getId(), 50.0);
-        List<FoodComponent> components = Arrays.asList(component1, component2);
+        List<FoodComponent> components = List.of(component1, component2);
 
         FoodItem item = new FoodItem.Builder()
                 .setName("Тесто")
@@ -716,7 +727,7 @@ public class FoodItemDaoTest {
         FoodItem savedSugar = foodItemDao.save(sugar);
         FoodComponent component1 = new FoodComponent(savedFlour.getId(), 150.0);
         FoodComponent component2 = new FoodComponent(savedSugar.getId(), 50.0);
-        List<FoodComponent> components = Arrays.asList(component1, component2);
+        List<FoodComponent> components = List.of(component1, component2);
 
         FoodItem item = new FoodItem.Builder()
                 .setName("Тесто")
@@ -763,7 +774,7 @@ public class FoodItemDaoTest {
         FoodItem savedVegetables = foodItemDao.save(vegetables);
         FoodComponent updatedComponent1 = new FoodComponent(savedChicken.getId(), 150.0);
         FoodComponent updatedComponent2 = new FoodComponent(savedVegetables.getId(), 100.0);
-        List<FoodComponent> updatedComponents = Arrays.asList(updatedComponent1, updatedComponent2);
+        List<FoodComponent> updatedComponents = List.of(updatedComponent1, updatedComponent2);
 
         FoodCategory updatedCategory = foodCategoryDao.save(new FoodCategory("Обновленная категория"));
 
@@ -802,6 +813,67 @@ public class FoodItemDaoTest {
             actualComponentAmounts.put(component.getIngredientFoodItemId(), component.getAmountInGrams());
         }
         assertEquals(expectedComponentAmounts, actualComponentAmounts, "Ингредиенты и их количество должны корректно сохраниться при обновлении FoodItem.");
+    }
+
+    @Test
+    @DisplayName("Метод update должен удалить компоненты из БД перед вставкой новых.")
+    void update_shouldDeleteComponentsFromDatabase() throws SQLException {
+        FoodItem flour = new FoodItem.Builder()
+                .setName("Мука")
+                .setCaloriesPer100g(350.0)
+                .setServingSizeInGrams(200.0)
+                .setUnit(Unit.CUP)
+                .setProteinsPer100g(10.0)
+                .setFatsPer100g(1.0)
+                .setCarbsPer100g(70.0)
+                .setComposite(false)
+                .setFoodCategory(category)
+                .setComponents(null)
+                .build();
+
+        FoodItem sugar = new FoodItem.Builder()
+                .setName("Сахар")
+                .setCaloriesPer100g(300.0)
+                .setServingSizeInGrams(10.0)
+                .setUnit(Unit.TABLESPOON)
+                .setProteinsPer100g(0.0)
+                .setFatsPer100g(0.0)
+                .setCarbsPer100g(100.0)
+                .setComposite(false)
+                .setFoodCategory(category)
+                .setComponents(null)
+                .build();
+
+        FoodItem savedFlour = foodItemDao.save(flour);
+        FoodItem savedSugar = foodItemDao.save(sugar);
+        FoodComponent component1 = new FoodComponent(savedFlour.getId(), 150.0);
+        FoodComponent component2 = new FoodComponent(savedSugar.getId(), 50.0);
+        List<FoodComponent> components = List.of(component1, component2);
+
+        FoodItem item = new FoodItem.Builder()
+                .setName("Тесто")
+                .setCaloriesPer100g(337.5)
+                .setServingSizeInGrams(200.0)
+                .setUnit(Unit.GRAM)
+                .setProteinsPer100g(7.5)
+                .setFatsPer100g(0.75)
+                .setCarbsPer100g(77.5)
+                .setComposite(true)
+                .setFoodCategory(category)
+                .setComponents(components)
+                .build();
+
+        FoodItem savedItem = foodItemDao.save(item);
+
+        int componentCount = countFoodComponentsByParentId(savedItem.getId());
+        assertEquals(2, componentCount, "После сохранения в базе должно быть 2 компонента.");
+
+        savedItem.setComponents(null);
+        boolean updated = foodItemDao.update(savedItem);
+
+        assertTrue(updated, "Food Item должен успешно обновиться.");
+        componentCount = countFoodComponentsByParentId(savedItem.getId());
+        assertEquals(0, componentCount, "После обновления в базе не должно быть компонентов.");
     }
 
     @Test
@@ -891,6 +963,66 @@ public class FoodItemDaoTest {
     }
 
     @Test
+    @DisplayName("Метод delete должен успешно удалить составной food item с компонентами.")
+    void delete_shouldDeleteCompositeFoodItemAndComponents() throws SQLException {
+        FoodItem flour = new FoodItem.Builder()
+                .setName("Мука")
+                .setCaloriesPer100g(350.0)
+                .setServingSizeInGrams(200.0)
+                .setUnit(Unit.CUP)
+                .setProteinsPer100g(10.0)
+                .setFatsPer100g(1.0)
+                .setCarbsPer100g(70.0)
+                .setComposite(false)
+                .setFoodCategory(category)
+                .setComponents(null)
+                .build();
+
+        FoodItem sugar = new FoodItem.Builder()
+                .setName("Сахар")
+                .setCaloriesPer100g(300.0)
+                .setServingSizeInGrams(10.0)
+                .setUnit(Unit.TABLESPOON)
+                .setProteinsPer100g(0.0)
+                .setFatsPer100g(0.0)
+                .setCarbsPer100g(100.0)
+                .setComposite(false)
+                .setFoodCategory(category)
+                .setComponents(null)
+                .build();
+
+        FoodItem savedFlour = foodItemDao.save(flour);
+        FoodItem savedSugar = foodItemDao.save(sugar);
+        FoodComponent component1 = new FoodComponent(savedFlour.getId(), 150.0);
+        FoodComponent component2 = new FoodComponent(savedSugar.getId(), 50.0);
+        List<FoodComponent> components = List.of(component1, component2);
+
+        FoodItem item = new FoodItem.Builder()
+                .setName("Тесто")
+                .setCaloriesPer100g(337.5)
+                .setServingSizeInGrams(200.0)
+                .setUnit(Unit.GRAM)
+                .setProteinsPer100g(7.5)
+                .setFatsPer100g(0.75)
+                .setCarbsPer100g(77.5)
+                .setComposite(true)
+                .setFoodCategory(category)
+                .setComponents(components)
+                .build();
+
+        FoodItem savedItem = foodItemDao.save(item);
+
+        boolean deleted = foodItemDao.delete(savedItem.getId());
+        assertTrue(deleted, "food item должен быть удален.");
+
+        Optional<FoodItem> foundDeleted = foodItemDao.findById(savedItem.getId());
+        assertFalse(foundDeleted.isPresent(), "Удаленный food item не должен быть найден.");
+
+        int componentCount = countFoodComponentsByParentId(savedItem.getId());
+        assertEquals(0, componentCount, "После удаления в базе не должно быть компонентов.");
+    }
+
+    @Test
     @DisplayName("ForeignKeyViolationException при вызове метода delete на продукте являющимся ингредиентом")
     void delete_shouldThrowForeignKeyViolationExceptionOnDeleteComponentFoodItem() {
         FoodItem flour = new FoodItem.Builder()
@@ -908,7 +1040,7 @@ public class FoodItemDaoTest {
 
         FoodItem savedFlour = foodItemDao.save(flour);
         FoodComponent component = new FoodComponent(savedFlour.getId(), 200.0);
-        List<FoodComponent> components = Arrays.asList(component);
+        List<FoodComponent> components = List.of(component);
 
         FoodItem item = new FoodItem.Builder()
                 .setName("Тесто")
@@ -929,6 +1061,41 @@ public class FoodItemDaoTest {
             foodItemDao.delete(savedFlour.getId());
         }, "Должно быть ForeignKeyViolationException при удалении FoodItem являющегося ингредиентом.");
         assertTrue(foodItemDao.findById(savedFlour.getId()).isPresent(), "food item должен остаться в базе после неудачной попытки удаления.");
+    }
+
+    @Test
+    @DisplayName("ForeignKeyViolationException при вызове метода delete на продукте являющимся компонентом для meal entry")
+    void delete_shouldThrowForeignKeyViolationExceptionOnDeleteMealComponentFoodItem() {
+        FoodItem item = new FoodItem.Builder()
+                .setName("Говядина")
+                .setCaloriesPer100g(250.0)
+                .setServingSizeInGrams(150.0)
+                .setUnit(Unit.GRAM)
+                .setProteinsPer100g(19.0)
+                .setFatsPer100g(16.0)
+                .setCarbsPer100g(1.0)
+                .setComposite(false)
+                .setFoodCategory(category)
+                .setComponents(null)
+                .build();
+        FoodItem savedItem = foodItemDao.save(item);
+        MealEntryDao mealEntryDao = new MealEntryDao(testDataSource);
+        mealEntryDao.createTables();
+        MealComponent mealComponent = new MealComponent(savedItem.getId(), 100);
+        List<MealComponent> components = List.of(mealComponent);
+        MealEntry mealEntry = new MealEntry.Builder()
+                .setDate(LocalDate.of(2025, 7, 21))
+                .setTime(LocalTime.of(17, 51))
+                .setMealCategory(MealCategory.DINNER)
+                .setNotes("заметка")
+                .setComponents(components)
+                .build();
+        mealEntryDao.save(mealEntry);
+
+        assertThrows(ForeignKeyViolationException.class, () -> {
+            foodItemDao.delete(savedItem.getId());
+        }, "Должно быть ForeignKeyViolationException при удалении FoodItem являющегося компонентом для meal entry.");
+        assertTrue(foodItemDao.findById(savedItem.getId()).isPresent(), "food item должен остаться в базе после неудачной попытки удаления.");
     }
 
     @Test
@@ -971,7 +1138,7 @@ public class FoodItemDaoTest {
         FoodItem savedSugar = foodItemDao.save(sugar);
         FoodComponent component1 = new FoodComponent(savedFlour.getId(), 150.0);
         FoodComponent component2 = new FoodComponent(savedSugar.getId(), 50.0);
-        List<FoodComponent> components1 = Arrays.asList(component1, component2);
+        List<FoodComponent> components1 = List.of(component1, component2);
 
         FoodItem item1 = new FoodItem.Builder()
                 .setName("Тесто")
@@ -1018,7 +1185,7 @@ public class FoodItemDaoTest {
         FoodItem savedVegetables = foodItemDao.save(vegetables);
         FoodComponent component3 = new FoodComponent(savedChicken.getId(), 150.0);
         FoodComponent component4 = new FoodComponent(savedVegetables.getId(), 100.0);
-        List<FoodComponent> components2 = Arrays.asList(component3, component4);
+        List<FoodComponent> components2 = List.of(component3, component4);
 
         FoodItem item2 = new FoodItem.Builder()
                 .setName("Курица с овощами")
@@ -1057,7 +1224,7 @@ public class FoodItemDaoTest {
             assertEquals(expectedItem.getCaloriesPer100g(), actualItem.getCaloriesPer100g(), 0.001,"Калорийность найденных food item должны совпадать.");
             assertEquals(expectedItem.getServingSizeInGrams(), actualItem.getServingSizeInGrams(), 0.001,"Веса порций найденных food item должны совпадать.");
             assertEquals(expectedItem.getUnit(), actualItem.getUnit(), "Меры измерений найденных food item должны совпадать.");
-            assertEquals(expectedItem.getProteinsPer100g(), actualItem.getProteinsPer100g(), 0.001,"Белки> найденных food item должны совпадать.");
+            assertEquals(expectedItem.getProteinsPer100g(), actualItem.getProteinsPer100g(), 0.001,"Белки найденных food item должны совпадать.");
             assertEquals(expectedItem.getFatsPer100g(), actualItem.getFatsPer100g(), 0.001,"Жиры найденных food item должны совпадать.");
             assertEquals(expectedItem.getCarbsPer100g(), actualItem.getCarbsPer100g(), 0.001,"Углеводы найденных food item должны совпадать.");
             assertEquals(expectedItem.isComposite(), actualItem.isComposite(), "Статусы составных найденных food item должны совпадать.");
@@ -1098,7 +1265,7 @@ public class FoodItemDaoTest {
         FoodItem savedSugar = foodItemDao.save(sugar);
         FoodComponent component1 = new FoodComponent(savedFlour.getId(), 150.0);
         FoodComponent component2 = new FoodComponent(savedSugar.getId(), 50.0);
-        List<FoodComponent> components1 = Arrays.asList(component1, component2);
+        List<FoodComponent> components1 = List.of(component1, component2);
 
         FoodItem item1 = new FoodItem.Builder()
                 .setName("Тесто")
@@ -1145,7 +1312,7 @@ public class FoodItemDaoTest {
         FoodItem savedVegetables = foodItemDao.save(vegetables);
         FoodComponent component3 = new FoodComponent(savedChicken.getId(), 150.0);
         FoodComponent component4 = new FoodComponent(savedVegetables.getId(), 100.0);
-        List<FoodComponent> components2 = Arrays.asList(component3, component4);
+        List<FoodComponent> components2 = List.of(component3, component4);
 
         FoodItem item2 = new FoodItem.Builder()
                 .setName("Курица с овощами")
@@ -1184,7 +1351,7 @@ public class FoodItemDaoTest {
             assertEquals(expectedItem.getCaloriesPer100g(), actualItem.getCaloriesPer100g(), 0.001,"Калорийность найденных food item должны совпадать.");
             assertEquals(expectedItem.getServingSizeInGrams(), actualItem.getServingSizeInGrams(), 0.001,"Веса порций найденных food item должны совпадать.");
             assertEquals(expectedItem.getUnit(), actualItem.getUnit(), "Меры измерений найденных food item должны совпадать.");
-            assertEquals(expectedItem.getProteinsPer100g(), actualItem.getProteinsPer100g(), 0.001,"Белки> найденных food item должны совпадать.");
+            assertEquals(expectedItem.getProteinsPer100g(), actualItem.getProteinsPer100g(), 0.001,"Белки найденных food item должны совпадать.");
             assertEquals(expectedItem.getFatsPer100g(), actualItem.getFatsPer100g(), 0.001,"Жиры найденных food item должны совпадать.");
             assertEquals(expectedItem.getCarbsPer100g(), actualItem.getCarbsPer100g(), 0.001,"Углеводы найденных food item должны совпадать.");
             assertEquals(expectedItem.isComposite(), actualItem.isComposite(), "Статусы isComposite найденных food item должны совпадать.");
@@ -1196,17 +1363,17 @@ public class FoodItemDaoTest {
                 Map<Long, FoodComponent> actualComponentMap = actualItem.getComponents().stream()
                         .collect(Collectors.toMap(FoodComponent::getIngredientFoodItemId, Function.identity()));
 
-                assertEquals(expectedComponentMap.size(), actualComponentMap.size(), "Количество компонентов найденного FoodItem должно совпадать.");
+                assertEquals(expectedComponentMap.size(), actualComponentMap.size(), "Количество компонентов найденного food item должно совпадать.");
 
                 for (Map.Entry<Long, FoodComponent> componentEntry : expectedComponentMap.entrySet()) {
                     Long ingredientId = componentEntry.getKey();
                     FoodComponent expectedComponent = componentEntry.getValue();
 
-                    assertTrue(actualComponentMap.containsKey(ingredientId), "Компонент у одного из найденных FoodItem должен содержать ингредиент с ID " + ingredientId);
+                    assertTrue(actualComponentMap.containsKey(ingredientId), "Компонент у одного из найденных food item должен содержать ингредиент с ID " + ingredientId);
                     FoodComponent actualComponent = actualComponentMap.get(ingredientId);
-                    assertEquals(expectedComponent.getId(), actualComponent.getId(), "Список компонентов у одного из найденных FoodItem должен сохранить ID компонентов.");
-                    assertEquals(expectedComponent.getIngredientFoodItemId(), actualComponent.getIngredientFoodItemId(), "Список компонентов у одного из найденных FoodItem должен сохранить ID ингредиентов.");
-                    assertEquals(expectedComponent.getAmountInGrams(), actualComponent.getAmountInGrams(), "Список компонентов у одного из найденных FoodItem должен сохранить вес ингредиентов. ");
+                    assertEquals(expectedComponent.getId(), actualComponent.getId(), "Список компонентов у одного из найденных food item должен сохранить ID компонентов.");
+                    assertEquals(expectedComponent.getIngredientFoodItemId(), actualComponent.getIngredientFoodItemId(), "Список компонентов у одного из найденных food item должен сохранить ID ингредиентов.");
+                    assertEquals(expectedComponent.getAmountInGrams(), actualComponent.getAmountInGrams(), "Список компонентов у одного из найденных food item должен сохранить вес ингредиентов.");
                 }
             } else {
                 assertNull(actualItem.getComponents());

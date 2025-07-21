@@ -117,6 +117,12 @@ public class SqlQueries {
             WHERE parent_food_item_id = ?
             """;
 
+    public static final String SELECT_COUNT_FOOD_COMPONENTS = """
+            SELECT COUNT(*)
+            FROM food_components
+            WHERE parent_food_item_id = ?
+            """;
+
     public static final String SELECT_FOOD_CATEGORY_BY_ID = """
             SELECT id, name
             FROM food_categories
@@ -148,6 +154,12 @@ public class SqlQueries {
 
     public static final String SELECT_MEAL_COMPONENT = """
             SELECT id, meal_entry_id, food_item_id, amount_in_grams
+            FROM meal_components
+            WHERE meal_entry_id = ?
+            """;
+
+    public static final String SELECT_COUNT_MEAL_COMPONENTS = """
+            SELECT COUNT(*)
             FROM meal_components
             WHERE meal_entry_id = ?
             """;
@@ -223,5 +235,13 @@ public class SqlQueries {
 
     public static final String DROP_TABLE_FOOD_CATEGORIES = """
             DROP TABLE IF EXISTS food_categories
+            """;
+
+    public static final String DROP_TABLE_MEAL_ENTRIES = """
+            DROP TABLE IF EXISTS meal_entries
+            """;
+
+    public static final String DROP_TABLE_MEAL_COMPONENTS = """
+            DROP TABLE IF EXISTS meal_components
             """;
 }

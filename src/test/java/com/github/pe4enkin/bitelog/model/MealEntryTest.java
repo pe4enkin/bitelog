@@ -40,7 +40,7 @@ class MealEntryTest {
     void testBuilderCreatesMealEntryWithAllFields() {
         MealComponent mealComponent1 = new MealComponent(1, 1, 100);
         MealComponent mealComponent2 = new MealComponent(2, 2, 150);
-        List<MealComponent> components = new ArrayList<>(Arrays.asList(mealComponent1, mealComponent2));
+        List<MealComponent> components = new ArrayList<>(List.of(mealComponent1, mealComponent2));
 
         MealEntry mealEntry = new MealEntry.Builder()
                 .setId(1)

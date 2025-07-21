@@ -47,7 +47,7 @@ class FoodItemTest {
         FoodCategory foodCategory = new FoodCategory(2, "Салаты");
         FoodComponent component1 = new FoodComponent(1,  2, 100.0);
         FoodComponent component2 = new FoodComponent(2,  3, 200.0);
-        List<FoodComponent> components = Arrays.asList(component1, component2);
+        List<FoodComponent> components = List.of(component1, component2);
 
         FoodItem foodItem = new FoodItem.Builder()
                 .setId(1)
@@ -85,7 +85,7 @@ class FoodItemTest {
         FoodCategory foodCategory2 = new FoodCategory(2, "Салаты");
         FoodComponent component1 = new FoodComponent(1, 2, 100.0);
         FoodComponent component2 = new FoodComponent(2, 3, 200.0);
-        List<FoodComponent> components = Arrays.asList(component1, component2);
+        List<FoodComponent> components = List.of(component1, component2);
         
         FoodItem foodItem1 = new FoodItem.Builder()
                 .setId(1)
