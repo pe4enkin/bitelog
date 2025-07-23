@@ -9,10 +9,7 @@ import com.github.pe4enkin.bitelog.service.exception.ServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public class FoodItemService {
     private static final Logger LOGGER = LoggerFactory.getLogger(FoodItemService.class);
@@ -22,7 +19,21 @@ public class FoodItemService {
         this.foodItemDao = foodItemDao;
     }
 
-    private void checkForComponents(FoodItem foodItem, Long componentId, Set<Long> visitedIds) {
+    private Optional<FoodItem> getFoodItemFromDaoOrCache(long id, Map<Long, FoodItem> cache) throws DataAccessException {
+        if (cache.containsKey(id)) {
+            LOGGER.debug("КЭШ: FoodItem с ID {} найден в кэше.", id);
+            return Optional.of(cache.get(id));
+        }
+        LOGGER.debug("КЭШ: FoodItem c id {} будет искаться в DAO.", id);
+        Optional<FoodItem> foodItemOptional = foodItemDao.findById(id);
+        foodItemOptional.ifPresent(foodItem -> {
+            cache.put(id, foodItem);
+            LOGGER.debug("КЭШ: FoodItem с ID {} добавлен в кэш.", id);
+        });
+        return foodItemOptional;
+    }
+
+    private void checkForComponents(FoodItem foodItem, Long componentId, Set<Long> visitedIds, Map<Long, FoodItem> validationCache) {
         if (visitedIds.contains(componentId)) {
             LOGGER.error("Обнаружена циклическая зависимость при валидации FoodItem {} c ID {}. Компонент с ID {} уже находится в пути обхода",
                     foodItem.getName(), foodItem.getId(), componentId);
@@ -31,7 +42,7 @@ public class FoodItemService {
         }
         visitedIds.add(componentId);
 
-        Optional<FoodItem> componentOptional = foodItemDao.findById(componentId);
+        Optional<FoodItem> componentOptional = getFoodItemFromDaoOrCache(componentId, validationCache);
         if (componentOptional.isEmpty()) {
             LOGGER.error("Попытка создать/изменить составной FoodItem с несуществующим ингредиентом с ID {}", componentId);
             throw new ServiceException("Ингредиент с ID " + componentId + " не найден.");
@@ -40,13 +51,13 @@ public class FoodItemService {
 
         if (component.isComposite() && component.getComponents() != null) {
             for (FoodComponent subComponent : component.getComponents()) {
-                checkForComponents(foodItem, subComponent.getIngredientFoodItemId(), new HashSet<>(visitedIds));
+                checkForComponents(foodItem, subComponent.getIngredientFoodItemId(), new HashSet<>(visitedIds), validationCache);
             }
         }
         visitedIds.remove(componentId);
     }
 
-    private void calculateAndSetAllNutrients(FoodItem foodItem, Set<Long> visitedIds) {
+    private void calculateAndSetAllNutrients(FoodItem foodItem, Set<Long> visitedIds, Map<Long, FoodItem> calculationCache) {
         if (!foodItem.isComposite() || foodItem.getComponents() == null || foodItem.getComponents().isEmpty()) {
             return;
         }
@@ -65,12 +76,15 @@ public class FoodItemService {
         double totalCarbs = 0.0;
 
         for (FoodComponent component : foodItem.getComponents()) {
-            Optional<FoodItem> ingredientOptional = getFoodItemById(component.getIngredientFoodItemId());
+            Optional<FoodItem> ingredientOptional = getFoodItemFromDaoOrCache(component.getIngredientFoodItemId(), calculationCache);
             if (ingredientOptional.isEmpty()) {
                 LOGGER.error("Ингредиент с ID {} не найден при расчете нутриентов для {}.", component.getIngredientFoodItemId(), foodItem.getName());
                 throw new ServiceException("Не удалось рассчитать нутриенты: ингредиент с ID " + component.getIngredientFoodItemId() + " не найден.");
             }
             FoodItem ingredient = ingredientOptional.get();
+            if (ingredient.isComposite() && ingredient.getCaloriesPer100g() == 0) {
+                calculateAndSetAllNutrients(ingredient, new HashSet<>(), calculationCache);
+            }
 
             double scaleFactor = component.getAmountInGrams() / 100.0;
             totalWeight += component.getAmountInGrams();
@@ -102,14 +116,16 @@ public class FoodItemService {
         }
 
         if (foodItem.isComposite() && foodItem.getComponents() != null) {
+            Map<Long, FoodItem> validationCache = new HashMap<>();
             for (FoodComponent component : foodItem.getComponents()) {
-                checkForComponents(foodItem, component.getIngredientFoodItemId(), new HashSet<>());
+                checkForComponents(foodItem, component.getIngredientFoodItemId(), new HashSet<>(), validationCache);
             }
         }
         try {
             FoodItem resultFoodItem = foodItemDao.save(foodItem);
-            Set<Long> visitedIds = new HashSet<>();
-            calculateAndSetAllNutrients(resultFoodItem, visitedIds);
+            Map<Long, FoodItem> calculationCache = new HashMap<>();
+            calculationCache.put(resultFoodItem.getId(), resultFoodItem);
+            calculateAndSetAllNutrients(resultFoodItem, new HashSet<>(), calculationCache);
             return resultFoodItem;
         } catch (DataAccessException e) {
             LOGGER.error("Ошибка DAO при создании FoodItem {}: {}", foodItem.getName(), e.getMessage());
@@ -130,10 +146,12 @@ public class FoodItemService {
         }
 
         if (foodItem.isComposite() && foodItem.getComponents() != null) {
+            Set<Long> visitedIds = new HashSet<>();
+            Map<Long, FoodItem> validationCache = new HashMap<>();
+            visitedIds.add(foodItem.getId());
+            validationCache.put(foodItem.getId(), foodItem);
             for (FoodComponent component : foodItem.getComponents()) {
-                Set<Long> visitedIds = new HashSet<>();
-                visitedIds.add(foodItem.getId());
-                checkForComponents(foodItem, component.getIngredientFoodItemId(), visitedIds);
+                checkForComponents(foodItem, component.getIngredientFoodItemId(), visitedIds, validationCache);
             }
         }
         try {
@@ -142,7 +160,9 @@ public class FoodItemService {
                 LOGGER.warn("FoodItem {} c ID {} не найден для обновления.", foodItem.getName(), foodItem.getId());
                 throw new ServiceException("Продукт с именем " + foodItem.getName() + " не найден для обновления.");
             }
-            calculateAndSetAllNutrients(foodItem, new HashSet<>());
+            Map<Long, FoodItem> calculationCache = new HashMap<>();
+            calculationCache.put(foodItem.getId(), foodItem);
+            calculateAndSetAllNutrients(foodItem, new HashSet<>(), calculationCache);
             return foodItem;
         } catch (DataAccessException e) {
             LOGGER.error("Ошибка DAO при обновлении FoodItem {}: {}", foodItem.getName(), e.getMessage());
@@ -153,7 +173,8 @@ public class FoodItemService {
     public Optional<FoodItem> getFoodItemById(long id) {
         try {
             Optional<FoodItem> foodItemOptional = foodItemDao.findById(id);
-            foodItemOptional.ifPresent(foodItem -> calculateAndSetAllNutrients(foodItem, new HashSet<>()));
+            Map<Long, FoodItem> calculationCache = new HashMap<>();
+            foodItemOptional.ifPresent(foodItem -> calculateAndSetAllNutrients(foodItem, new HashSet<>(), calculationCache));
             return foodItemOptional;
         } catch (DataAccessException e) {
             LOGGER.error("Ошибка DAO при получении FoodItem по ID {}: {}", id, e.getMessage());
@@ -164,7 +185,8 @@ public class FoodItemService {
     public Optional<FoodItem> getFoodItemByName(String name) {
         try {
             Optional<FoodItem> foodItemOptional = foodItemDao.findByName(name);
-            foodItemOptional.ifPresent(foodItem -> calculateAndSetAllNutrients(foodItem, new HashSet<>()));
+            Map<Long, FoodItem> calculationCache = new HashMap<>();
+            foodItemOptional.ifPresent(foodItem -> calculateAndSetAllNutrients(foodItem, new HashSet<>(), calculationCache));
             return foodItemOptional;
         } catch (DataAccessException e) {
             LOGGER.error("Ошибка DAO при получении FoodItem по имени {}: {}", name, e.getMessage());
@@ -191,7 +213,8 @@ public class FoodItemService {
             if (loadComponents) {
                 for (FoodItem item : foodItems) {
                     if (item.isComposite()) {
-                        calculateAndSetAllNutrients(item, new HashSet<>());
+                        Map<Long, FoodItem> calculationCache = new HashMap<>();
+                        calculateAndSetAllNutrients(item, new HashSet<>(), calculationCache);
                     }
                 }
             }
