@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -30,12 +31,12 @@ public class FoodItemService {
         }
         visitedIds.add(componentId);
 
-        Optional<FoodItem> componentOpt = foodItemDao.findById(componentId);
-        if (componentOpt.isEmpty()) {
+        Optional<FoodItem> componentOptional = foodItemDao.findById(componentId);
+        if (componentOptional.isEmpty()) {
             LOGGER.error("Попытка создать/изменить составной FoodItem с несуществующим ингредиентом с ID {}", componentId);
             throw new ServiceException("Ингредиент с ID " + componentId + " не найден.");
         }
-        FoodItem component = componentOpt.get();
+        FoodItem component = componentOptional.get();
 
         if (component.isComposite() && component.getComponents() != null) {
             for (FoodComponent subComponent : component.getComponents()) {
@@ -64,12 +65,12 @@ public class FoodItemService {
         double totalCarbs = 0.0;
 
         for (FoodComponent component : foodItem.getComponents()) {
-            Optional<FoodItem> ingredientOpt = getFoodItemById(component.getIngredientFoodItemId());
-            if (ingredientOpt.isEmpty()) {
+            Optional<FoodItem> ingredientOptional = getFoodItemById(component.getIngredientFoodItemId());
+            if (ingredientOptional.isEmpty()) {
                 LOGGER.error("Ингредиент с ID {} не найден при расчете нутриентов для {}.", component.getIngredientFoodItemId(), foodItem.getName());
                 throw new ServiceException("Не удалось рассчитать нутриенты: ингредиент с ID " + component.getIngredientFoodItemId() + " не найден.");
             }
-            FoodItem ingredient = ingredientOpt.get();
+            FoodItem ingredient = ingredientOptional.get();
 
             double scaleFactor = component.getAmountInGrams() / 100.0;
             totalWeight += component.getAmountInGrams();
@@ -102,12 +103,14 @@ public class FoodItemService {
 
         if (foodItem.isComposite() && foodItem.getComponents() != null) {
             for (FoodComponent component : foodItem.getComponents()) {
-                Set<Long> visitedIds = new HashSet<>();
-                checkForComponents(foodItem, component.getIngredientFoodItemId(), visitedIds);
+                checkForComponents(foodItem, component.getIngredientFoodItemId(), new HashSet<>());
             }
         }
         try {
-            return foodItemDao.save(foodItem);
+            FoodItem resultFoodItem = foodItemDao.save(foodItem);
+            Set<Long> visitedIds = new HashSet<>();
+            calculateAndSetAllNutrients(resultFoodItem, visitedIds);
+            return resultFoodItem;
         } catch (DataAccessException e) {
             LOGGER.error("Ошибка DAO при создании FoodItem {}: {}", foodItem.getName(), e.getMessage());
             throw new ServiceException("Не удалось создать продукт " + foodItem.getName() + ": " + e.getMessage(), e);
@@ -117,7 +120,7 @@ public class FoodItemService {
     public FoodItem updateFoodItem(FoodItem foodItem) {
         if (foodItem.getId() <= 0) {
             LOGGER.warn("Попытка обновить FoodItem без указания действительного ID - {}", foodItem.getId());
-            throw  new ServiceException("ID продукта должен быть указан для обновления.");
+            throw new ServiceException("ID продукта должен быть указан для обновления.");
         }
 
         Optional<FoodItem> existingFoodItem = foodItemDao.findByName(foodItem.getName());
@@ -139,6 +142,7 @@ public class FoodItemService {
                 LOGGER.warn("FoodItem {} c ID {} не найден для обновления.", foodItem.getName(), foodItem.getId());
                 throw new ServiceException("Продукт с именем " + foodItem.getName() + " не найден для обновления.");
             }
+            calculateAndSetAllNutrients(foodItem, new HashSet<>());
             return foodItem;
         } catch (DataAccessException e) {
             LOGGER.error("Ошибка DAO при обновлении FoodItem {}: {}", foodItem.getName(), e.getMessage());
@@ -148,7 +152,9 @@ public class FoodItemService {
 
     public Optional<FoodItem> getFoodItemById(long id) {
         try {
-            return foodItemDao.findById(id);
+            Optional<FoodItem> foodItemOptional = foodItemDao.findById(id);
+            foodItemOptional.ifPresent(foodItem -> calculateAndSetAllNutrients(foodItem, new HashSet<>()));
+            return foodItemOptional;
         } catch (DataAccessException e) {
             LOGGER.error("Ошибка DAO при получении FoodItem по ID {}: {}", id, e.getMessage());
             throw new ServiceException("Не удалось получить продукт по ID " + id + ": " + e.getMessage(), e);
@@ -157,7 +163,9 @@ public class FoodItemService {
 
     public Optional<FoodItem> getFoodItemByName(String name) {
         try {
-            return foodItemDao.findByName(name);
+            Optional<FoodItem> foodItemOptional = foodItemDao.findByName(name);
+            foodItemOptional.ifPresent(foodItem -> calculateAndSetAllNutrients(foodItem, new HashSet<>()));
+            return foodItemOptional;
         } catch (DataAccessException e) {
             LOGGER.error("Ошибка DAO при получении FoodItem по имени {}: {}", name, e.getMessage());
             throw new ServiceException("Не удалось получить продукт по имени " + name + ": " + e.getMessage(), e);
@@ -174,6 +182,23 @@ public class FoodItemService {
         } catch (DataAccessException e) {
             LOGGER.error("Ошибка DAO при удалении FoodItem с ID {}: {}", id, e.getMessage());
             throw new ServiceException("Не удалось удалить продукт: " + e.getMessage(), e);
+        }
+    }
+
+    public List<FoodItem> getAllFoodItems(boolean loadComponents) {
+        try {
+            List<FoodItem> foodItems = foodItemDao.findAll(loadComponents);
+            if (loadComponents) {
+                for (FoodItem item : foodItems) {
+                    if (item.isComposite()) {
+                        calculateAndSetAllNutrients(item, new HashSet<>());
+                    }
+                }
+            }
+            return foodItems;
+        } catch (DataAccessException e) {
+            LOGGER.error("Ошибка DAO при получении всех FoodItem: {}", e.getMessage());
+            throw new ServiceException("Не удалось получить список всех продуктов: " + e.getMessage(), e);
         }
     }
 }
