@@ -112,7 +112,7 @@ public class FoodItemService {
     public FoodItem createFoodItem(FoodItem foodItem) {
         if (foodItemDao.findByName(foodItem.getName()).isPresent()) {
             LOGGER.warn("Попытка создать FoodItem с уже существующим именем: {}", foodItem.getName());
-            throw new ServiceException("Продукт с именем " + foodItem.getName() + " уже существует");
+            throw new ServiceException("Продукт с именем " + foodItem.getName() + " уже существует.");
         }
 
         if (foodItem.isComposite() && foodItem.getComponents() != null) {

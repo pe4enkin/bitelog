@@ -83,7 +83,8 @@ class DatabaseConnectionManagerTest {
 
         SQLException thrown = assertThrows(SQLException.class, () -> {
             DatabaseConnectionManager.getDataSource();
-        }, "Должно быть SQLException при ошибке создании директории data");
+        }, "Должно быть " +
+                "SQLException при ошибке создании директории data");
         assertTrue(thrown.getMessage().contains("Не удалось создать директорию для файла БД"),
                 "Сообщение об ошибке должно указывать на проблему с созданием директории.");
     }
