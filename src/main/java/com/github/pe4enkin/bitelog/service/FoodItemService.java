@@ -2,7 +2,6 @@ package com.github.pe4enkin.bitelog.service;
 
 import com.github.pe4enkin.bitelog.dao.FoodItemDao;
 import com.github.pe4enkin.bitelog.dao.exception.DataAccessException;
-import com.github.pe4enkin.bitelog.model.FoodCategory;
 import com.github.pe4enkin.bitelog.model.FoodComponent;
 import com.github.pe4enkin.bitelog.model.FoodItem;
 import com.github.pe4enkin.bitelog.service.exception.ServiceException;
