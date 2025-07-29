@@ -29,13 +29,6 @@ public class FoodItemServiceTest {
     @InjectMocks
     private FoodItemService foodItemService;
 
-    private Set<Long> processedFoodItemsIds;
-
-    @BeforeEach
-    void setUp() {
-        processedFoodItemsIds = new HashSet<>();
-    }
-
     private Optional<FoodItem> mockFindById(long id) {
         if (id == 1L) {
             FoodItem flour = new FoodItem.Builder()

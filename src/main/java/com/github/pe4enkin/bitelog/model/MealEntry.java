@@ -158,7 +158,7 @@ public class MealEntry {
         private double totalFats;
         private double totalCarbs;
         private String notes;
-        private List<MealComponent> components;
+        private List<MealComponent> components = new ArrayList<>();
 
         public Builder setId(long id) {
             this.id = id;

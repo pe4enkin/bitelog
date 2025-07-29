@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,6 +21,9 @@ class MealEntryTest {
                 .setTime(LocalTime.of(17, 10))
                 .setMealCategory(MealCategory.SNACK)
                 .setTotalCalories(300.0)
+                .setTotalProteins(25.0)
+                .setTotalFats(20.0)
+                .setTotalCarbs(5.0)
                 .setNotes("notes")
                 .setComponents(null)
                 .build();
@@ -31,6 +33,9 @@ class MealEntryTest {
         assertEquals(LocalTime.of(17, 10), mealEntry.getTime());
         assertEquals(MealCategory.SNACK, mealEntry.getMealCategory());
         assertEquals(300.0, mealEntry.getTotalCalories(), 0.001);
+        assertEquals(25.0, mealEntry.getTotalProteins(), 0.001);
+        assertEquals(20.0, mealEntry.getTotalFats(), 0.001);
+        assertEquals(5.0, mealEntry.getTotalCarbs(), 0.001);
         assertEquals("notes", mealEntry.getNotes());
         assertTrue(mealEntry.getComponents().isEmpty());
     }
@@ -40,7 +45,7 @@ class MealEntryTest {
     void testBuilderCreatesMealEntryWithAllFields() {
         MealComponent mealComponent1 = new MealComponent(1, 1, 100);
         MealComponent mealComponent2 = new MealComponent(2, 2, 150);
-        List<MealComponent> components = new ArrayList<>(List.of(mealComponent1, mealComponent2));
+        List<MealComponent> components =List.of(mealComponent1, mealComponent2);
 
         MealEntry mealEntry = new MealEntry.Builder()
                 .setId(1)
@@ -48,6 +53,9 @@ class MealEntryTest {
                 .setTime(LocalTime.of(17, 10))
                 .setMealCategory(MealCategory.SNACK)
                 .setTotalCalories(300.0)
+                .setTotalProteins(25.0)
+                .setTotalFats(20.0)
+                .setTotalCarbs(5.0)
                 .setNotes("notes")
                 .setComponents(components)
                 .build();
@@ -57,6 +65,9 @@ class MealEntryTest {
         assertEquals(LocalTime.of(17, 10), mealEntry.getTime());
         assertEquals(MealCategory.SNACK, mealEntry.getMealCategory());
         assertEquals(300.0, mealEntry.getTotalCalories(), 0.001);
+        assertEquals(25.0, mealEntry.getTotalProteins(), 0.001);
+        assertEquals(20.0, mealEntry.getTotalFats(), 0.001);
+        assertEquals(5.0, mealEntry.getTotalCarbs(), 0.001);
         assertEquals("notes", mealEntry.getNotes());
         assertEquals(components, mealEntry.getComponents());
         assertNotSame(components, mealEntry.getComponents());
@@ -70,7 +81,10 @@ class MealEntryTest {
                 .setDate(LocalDate.of(2025, 06, 26))
                 .setTime(LocalTime.of(12, 0))
                 .setMealCategory(MealCategory.LUNCH)
-                .setTotalCalories(500.0)
+                .setTotalCalories(300.0)
+                .setTotalProteins(25.0)
+                .setTotalFats(20.0)
+                .setTotalCarbs(5.0)
                 .setNotes("Обед")
                 .setComponents(null)
                 .build();
@@ -80,7 +94,10 @@ class MealEntryTest {
                 .setDate(LocalDate.of(2025, 06, 26))
                 .setTime(LocalTime.of(12, 0))
                 .setMealCategory(MealCategory.LUNCH)
-                .setTotalCalories(500.0)
+                .setTotalCalories(300.0)
+                .setTotalProteins(25.0)
+                .setTotalFats(20.0)
+                .setTotalCarbs(5.0)
                 .setNotes("Обед")
                 .setComponents(null)
                 .build();
@@ -90,7 +107,10 @@ class MealEntryTest {
                 .setDate(LocalDate.of(2024, 05, 25))
                 .setTime(LocalTime.of(18, 30))
                 .setMealCategory(MealCategory.DINNER)
-                .setTotalCalories(750.0)
+                .setTotalCalories(600.0)
+                .setTotalProteins(50.0)
+                .setTotalFats(40.0)
+                .setTotalCarbs(10.0)
                 .setNotes("Ужин")
                 .setComponents(null)
                 .build();
@@ -115,7 +135,10 @@ class MealEntryTest {
                 .setDate(LocalDate.of(2025, 06, 26))
                 .setTime(LocalTime.of(12, 0))
                 .setMealCategory(MealCategory.LUNCH)
-                .setTotalCalories(500.0)
+                .setTotalCalories(300.0)
+                .setTotalProteins(25.0)
+                .setTotalFats(20.0)
+                .setTotalCarbs(5.0)
                 .setNotes("Обед")
                 .setComponents(null)
                 .build();
@@ -125,7 +148,10 @@ class MealEntryTest {
                 .setDate(LocalDate.of(2025, 06, 26))
                 .setTime(LocalTime.of(12, 0))
                 .setMealCategory(MealCategory.LUNCH)
-                .setTotalCalories(500.0)
+                .setTotalCalories(300.0)
+                .setTotalProteins(25.0)
+                .setTotalFats(20.0)
+                .setTotalCarbs(5.0)
                 .setNotes("Обед")
                 .setComponents(null)
                 .build();
@@ -135,7 +161,10 @@ class MealEntryTest {
                 .setDate(LocalDate.of(2024, 05, 25))
                 .setTime(LocalTime.of(18, 30))
                 .setMealCategory(MealCategory.DINNER)
-                .setTotalCalories(750.0)
+                .setTotalCalories(600.0)
+                .setTotalProteins(50.0)
+                .setTotalFats(40.0)
+                .setTotalCarbs(10.0)
                 .setNotes("Ужин")
                 .setComponents(null)
                 .build();
@@ -145,7 +174,10 @@ class MealEntryTest {
                 .setDate(LocalDate.of(2024, 05, 25))
                 .setTime(LocalTime.of(18, 30))
                 .setMealCategory(MealCategory.DINNER)
-                .setTotalCalories(750.0)
+                .setTotalCalories(600.0)
+                .setTotalProteins(50.0)
+                .setTotalFats(40.0)
+                .setTotalCarbs(10.0)
                 .setNotes("Ужин")
                 .setComponents(null)
                 .build();
