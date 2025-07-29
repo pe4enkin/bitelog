@@ -132,6 +132,30 @@ public class FoodItemService {
         }
     }
 
+    public Optional<FoodItem> getFoodItemById(long id) {
+        try {
+            Optional<FoodItem> foodItemOptional = foodItemDao.findById(id);
+            Map<Long, FoodItem> calculationCache = new HashMap<>();
+            foodItemOptional.ifPresent(foodItem -> calculateAndSetAllNutrients(foodItem, new HashSet<>(), calculationCache));
+            return foodItemOptional;
+        } catch (DataAccessException e) {
+            LOGGER.error("Ошибка DAO при получении FoodItem по ID {}: {}", id, e.getMessage());
+            throw new ServiceException("Не удалось получить продукт по ID " + id + ": " + e.getMessage(), e);
+        }
+    }
+
+    public Optional<FoodItem> getFoodItemByName(String name) {
+        try {
+            Optional<FoodItem> foodItemOptional = foodItemDao.findByName(name);
+            Map<Long, FoodItem> calculationCache = new HashMap<>();
+            foodItemOptional.ifPresent(foodItem -> calculateAndSetAllNutrients(foodItem, new HashSet<>(), calculationCache));
+            return foodItemOptional;
+        } catch (DataAccessException e) {
+            LOGGER.error("Ошибка DAO при получении FoodItem по имени {}: {}", name, e.getMessage());
+            throw new ServiceException("Не удалось получить продукт по имени " + name + ": " + e.getMessage(), e);
+        }
+    }
+
     public FoodItem updateFoodItem(FoodItem foodItem) {
         if (foodItem.getId() <= 0) {
             LOGGER.warn("Попытка обновить FoodItem без указания действительного ID - {}", foodItem.getId());
@@ -169,30 +193,6 @@ public class FoodItemService {
         }
     }
 
-    public Optional<FoodItem> getFoodItemById(long id) {
-        try {
-            Optional<FoodItem> foodItemOptional = foodItemDao.findById(id);
-            Map<Long, FoodItem> calculationCache = new HashMap<>();
-            foodItemOptional.ifPresent(foodItem -> calculateAndSetAllNutrients(foodItem, new HashSet<>(), calculationCache));
-            return foodItemOptional;
-        } catch (DataAccessException e) {
-            LOGGER.error("Ошибка DAO при получении FoodItem по ID {}: {}", id, e.getMessage());
-            throw new ServiceException("Не удалось получить продукт по ID " + id + ": " + e.getMessage(), e);
-        }
-    }
-
-    public Optional<FoodItem> getFoodItemByName(String name) {
-        try {
-            Optional<FoodItem> foodItemOptional = foodItemDao.findByName(name);
-            Map<Long, FoodItem> calculationCache = new HashMap<>();
-            foodItemOptional.ifPresent(foodItem -> calculateAndSetAllNutrients(foodItem, new HashSet<>(), calculationCache));
-            return foodItemOptional;
-        } catch (DataAccessException e) {
-            LOGGER.error("Ошибка DAO при получении FoodItem по имени {}: {}", name, e.getMessage());
-            throw new ServiceException("Не удалось получить продукт по имени " + name + ": " + e.getMessage(), e);
-        }
-    }
-
     public boolean deleteFoodItem(long id) {
         try {
             boolean deleted = foodItemDao.delete(id);
@@ -202,7 +202,7 @@ public class FoodItemService {
             return deleted;
         } catch (DataAccessException e) {
             LOGGER.error("Ошибка DAO при удалении FoodItem с ID {}: {}", id, e.getMessage());
-            throw new ServiceException("Не удалось удалить продукт: " + e.getMessage(), e);
+            throw new ServiceException("Не удалось удалить продукт с ID " + id + ": " + e.getMessage(), e);
         }
     }
 

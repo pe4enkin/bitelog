@@ -11,6 +11,9 @@ public class MealEntry {
     private LocalTime time;
     private MealCategory mealCategory;
     private double totalCalories;
+    private double totalProteins;
+    private double totalFats;
+    private double totalCarbs;
     private String notes;
     private List<MealComponent> components;
 
@@ -20,6 +23,9 @@ public class MealEntry {
         this.time = builder.time;
         this.mealCategory = builder.mealCategory;
         this.totalCalories = builder.totalCalories;
+        this.totalProteins = builder.totalProteins;
+        this.totalFats = builder.totalFats;
+        this.totalCarbs = builder.totalCarbs;
         this.notes = builder.notes;
         this.components = builder.components;
     }
@@ -69,6 +75,33 @@ public class MealEntry {
         return this;
     }
 
+    public double getTotalProteins() {
+        return totalProteins;
+    }
+
+    public MealEntry setTotalProteins(double totalProteins) {
+        this.totalProteins = totalProteins;
+        return this;
+    }
+
+    public double getTotalFats() {
+        return totalFats;
+    }
+
+    public MealEntry setTotalFats(double totalFats) {
+        this.totalFats = totalFats;
+        return this;
+    }
+
+    public double getTotalCarbs() {
+        return totalCarbs;
+    }
+
+    public MealEntry setTotalCarbs(double totalCarbs) {
+        this.totalCarbs = totalCarbs;
+        return this;
+    }
+
     public String getNotes() {
         return notes;
     }
@@ -106,8 +139,11 @@ public class MealEntry {
                 ", date=" + date +
                 ", time=" + time +
                 ", mealCategory=" + mealCategory +
-                ", notes='" + notes + '\'' +
                 ", totalCalories=" + totalCalories +
+                ", totalProteins=" + totalProteins +
+                ", totalFats=" + totalFats +
+                ", totalCarbs=" + totalCarbs +
+                ", notes='" + notes + '\'' +
                 ", components=" + components +
                 '}';
     }
@@ -118,6 +154,9 @@ public class MealEntry {
         private LocalTime time;
         private MealCategory mealCategory;
         private double totalCalories;
+        private double totalProteins;
+        private double totalFats;
+        private double totalCarbs;
         private String notes;
         private List<MealComponent> components;
 
@@ -143,6 +182,21 @@ public class MealEntry {
 
         public Builder setTotalCalories(double totalCalories) {
             this.totalCalories = totalCalories;
+            return this;
+        }
+
+        public Builder setTotalProteins(double totalProteins) {
+            this.totalProteins = totalProteins;
+            return this;
+        }
+
+        public Builder setTotalFats(double totalFats) {
+            this.totalFats = totalFats;
+            return this;
+        }
+
+        public Builder setTotalCarbs(double totalCarbs) {
+            this.totalCarbs = totalCarbs;
             return this;
         }
 
