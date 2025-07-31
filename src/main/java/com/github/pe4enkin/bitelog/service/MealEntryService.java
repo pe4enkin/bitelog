@@ -57,9 +57,10 @@ public class MealEntryService {
 
     public MealEntry createMealEntry(MealEntry mealEntry) {
         String logMealDateTime = DateTimeFormatterUtil.formatDateTime(mealEntry.getDate(), mealEntry.getTime());
-        calculateAndSetAllNutrients(mealEntry);
         try {
-            return mealEntryDao.save(mealEntry);
+            MealEntry resultMealEntry = mealEntryDao.save(mealEntry);
+            calculateAndSetAllNutrients(resultMealEntry);
+            return resultMealEntry;
         } catch (DataAccessException e) {
             LOGGER.error("Ошибка DAO при создании MealEntry от {}: {}", logMealDateTime, e.getMessage());
             throw new ServiceException("Не удалось создать MealEntry от " + logMealDateTime + ": " + e.getMessage(), e);
@@ -83,13 +84,13 @@ public class MealEntryService {
             LOGGER.warn("Попытка обновить MealEntry без указания действительного ID - {}", mealEntry.getId());
             throw new ServiceException("ID MealEntry должен быть указан для обновления.");
         }
-        calculateAndSetAllNutrients(mealEntry);
         try {
             boolean updated = mealEntryDao.update(mealEntry);
             if (!updated) {
                 LOGGER.warn("MealEntry от {} c ID {} не найден для обновления.", logMealDateTime, mealEntry.getId());
                 throw new ServiceException("MealEntry от " + logMealDateTime + " не найден для обновления.");
             }
+            calculateAndSetAllNutrients(mealEntry);
             return mealEntry;
         } catch (DataAccessException e) {
             LOGGER.error("Ошибка DAO при обновлении MealEntry от {}: {}", logMealDateTime, e.getMessage());
@@ -106,7 +107,7 @@ public class MealEntryService {
             return deleted;
         } catch (DataAccessException e) {
             LOGGER.error("Ошибка DAO при удалении MealEntry с ID {}: {}", id, e.getMessage());
-            throw new ServiceException("Не удалось удалить MealEntry: " + e.getMessage(), e);
+            throw new ServiceException("Не удалось удалить MealEntry с ID " + id + ": " + e.getMessage(), e);
         }
     }
 
