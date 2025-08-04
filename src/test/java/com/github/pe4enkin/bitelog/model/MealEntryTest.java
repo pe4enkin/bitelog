@@ -17,7 +17,7 @@ class MealEntryTest {
     void testBuilderCreatesMealEntryWithEmptyList() {
         MealEntry mealEntry = new MealEntry.Builder()
                 .setId(1)
-                .setDate(LocalDate.of(2025, 07, 15))
+                .setDate(LocalDate.of(2025, 7, 15))
                 .setTime(LocalTime.of(17, 10))
                 .setMealCategory(MealCategory.SNACK)
                 .setTotalCalories(300.0)
@@ -29,7 +29,7 @@ class MealEntryTest {
                 .build();
 
         assertEquals(1, mealEntry.getId());
-        assertEquals(LocalDate.of(2025, 07, 15), mealEntry.getDate());
+        assertEquals(LocalDate.of(2025, 7, 15), mealEntry.getDate());
         assertEquals(LocalTime.of(17, 10), mealEntry.getTime());
         assertEquals(MealCategory.SNACK, mealEntry.getMealCategory());
         assertEquals(300.0, mealEntry.getTotalCalories(), 0.001);
@@ -49,7 +49,7 @@ class MealEntryTest {
 
         MealEntry mealEntry = new MealEntry.Builder()
                 .setId(1)
-                .setDate(LocalDate.of(2025, 07, 15))
+                .setDate(LocalDate.of(2025, 7, 15))
                 .setTime(LocalTime.of(17, 10))
                 .setMealCategory(MealCategory.SNACK)
                 .setTotalCalories(300.0)
@@ -61,7 +61,7 @@ class MealEntryTest {
                 .build();
 
         assertEquals(1, mealEntry.getId());
-        assertEquals(LocalDate.of(2025, 07, 15), mealEntry.getDate());
+        assertEquals(LocalDate.of(2025, 7, 15), mealEntry.getDate());
         assertEquals(LocalTime.of(17, 10), mealEntry.getTime());
         assertEquals(MealCategory.SNACK, mealEntry.getMealCategory());
         assertEquals(300.0, mealEntry.getTotalCalories(), 0.001);
@@ -78,7 +78,7 @@ class MealEntryTest {
     void testEqualsAndHashCodeEqualById() {
         MealEntry mealEntry1 = new MealEntry.Builder()
                 .setId(1)
-                .setDate(LocalDate.of(2025, 06, 26))
+                .setDate(LocalDate.of(2025, 6, 26))
                 .setTime(LocalTime.of(12, 0))
                 .setMealCategory(MealCategory.LUNCH)
                 .setTotalCalories(300.0)
@@ -91,7 +91,7 @@ class MealEntryTest {
 
         MealEntry mealEntry2 = new MealEntry.Builder()
                 .setId(1)
-                .setDate(LocalDate.of(2025, 06, 26))
+                .setDate(LocalDate.of(2025, 6, 26))
                 .setTime(LocalTime.of(12, 0))
                 .setMealCategory(MealCategory.LUNCH)
                 .setTotalCalories(300.0)
@@ -104,7 +104,7 @@ class MealEntryTest {
 
         MealEntry mealEntry3 = new MealEntry.Builder()
                 .setId(1)
-                .setDate(LocalDate.of(2024, 05, 25))
+                .setDate(LocalDate.of(2024, 5, 25))
                 .setTime(LocalTime.of(18, 30))
                 .setMealCategory(MealCategory.DINNER)
                 .setTotalCalories(600.0)
@@ -132,7 +132,7 @@ class MealEntryTest {
     void testEqualsAndHashCodeNotEqualById() {
         MealEntry mealEntry1 = new MealEntry.Builder()
                 .setId(1)
-                .setDate(LocalDate.of(2025, 06, 26))
+                .setDate(LocalDate.of(2025, 6, 26))
                 .setTime(LocalTime.of(12, 0))
                 .setMealCategory(MealCategory.LUNCH)
                 .setTotalCalories(300.0)
@@ -145,7 +145,7 @@ class MealEntryTest {
 
         MealEntry mealEntry2 = new MealEntry.Builder()
                 .setId(2)
-                .setDate(LocalDate.of(2025, 06, 26))
+                .setDate(LocalDate.of(2025, 6, 26))
                 .setTime(LocalTime.of(12, 0))
                 .setMealCategory(MealCategory.LUNCH)
                 .setTotalCalories(300.0)
@@ -158,7 +158,7 @@ class MealEntryTest {
 
         MealEntry mealEntry3 = new MealEntry.Builder()
                 .setId(0)
-                .setDate(LocalDate.of(2024, 05, 25))
+                .setDate(LocalDate.of(2024, 5, 25))
                 .setTime(LocalTime.of(18, 30))
                 .setMealCategory(MealCategory.DINNER)
                 .setTotalCalories(600.0)
@@ -171,7 +171,7 @@ class MealEntryTest {
 
         MealEntry mealEntry4 = new MealEntry.Builder()
                 .setId(0)
-                .setDate(LocalDate.of(2024, 05, 25))
+                .setDate(LocalDate.of(2024, 5, 25))
                 .setTime(LocalTime.of(18, 30))
                 .setMealCategory(MealCategory.DINNER)
                 .setTotalCalories(600.0)

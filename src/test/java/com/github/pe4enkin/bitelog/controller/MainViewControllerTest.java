@@ -1,7 +1,8 @@
 package com.github.pe4enkin.bitelog.controller;
 
 import com.github.pe4enkin.bitelog.model.AppState;
-import com.github.pe4enkin.bitelog.service.DiaryService;
+import com.github.pe4enkin.bitelog.model.DailyDiary;
+import com.github.pe4enkin.bitelog.service.DailyDiaryService;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -16,6 +17,7 @@ import org.testfx.framework.junit5.ApplicationTest;
 import org.testfx.util.WaitForAsyncUtils;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -28,18 +30,20 @@ class MainViewControllerTest extends ApplicationTest {
     private MainViewController controller;
     private AppState appState;
     @Mock
-    private DiaryService diaryService;
+    private DailyDiaryService dailyDiaryService;
     private DatePicker datePicker;
+    private DailyDiary dailyDiary;
 
     @Override
     public void start(Stage stage) throws Exception {
         MockitoAnnotations.openMocks(this);
         appState = new AppState();
-        when(diaryService.loadForDate(any(LocalDate.class))).thenReturn(true);
+        dailyDiary = new DailyDiary(LocalDate.now(), new ArrayList<>());
+        when(dailyDiaryService.getDiaryForDate(any(LocalDate.class))).thenReturn(dailyDiary);
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/github/pe4enkin/bitelog/view/main-view.fxml"));
         loader.setControllerFactory(type -> {
             if (type == MainViewController.class) {
-                controller = new MainViewController(appState, diaryService);
+                controller = new MainViewController(appState, dailyDiaryService);
                 return controller;
             } else {
                 try {
@@ -57,16 +61,16 @@ class MainViewControllerTest extends ApplicationTest {
         assertNotNull(datePicker, "Datepicker должен быть найден по fx:id = 'datePicker'");
         WaitForAsyncUtils.waitForFxEvents();
         assertEquals(appState.getCurrentWorkingDate(), datePicker.getValue(), "Datepicker должен быть инициализирован текущей датой из AppState.");
-        verify(diaryService, atLeastOnce()).loadForDate(appState.getCurrentWorkingDate());
-        reset(diaryService);
-        when(diaryService.loadForDate(any(LocalDate.class))).thenReturn(true);
+        verify(dailyDiaryService, atLeastOnce()).getDiaryForDate(appState.getCurrentWorkingDate());
+        reset(dailyDiaryService);
+        when(dailyDiaryService.getDiaryForDate(any(LocalDate.class))).thenReturn(dailyDiary);
     }
 
     @BeforeEach
     void setUp() throws TimeoutException {
         appState.setCurrentWorkingDate(LocalDate.now());
-        reset(diaryService);
-        when(diaryService.loadForDate(any(LocalDate.class))).thenReturn(true);
+        reset(dailyDiaryService);
+        when(dailyDiaryService.getDiaryForDate(any(LocalDate.class))).thenReturn(dailyDiary);
         interact(() -> {
             datePicker.setValue(appState.getCurrentWorkingDate());
         });
@@ -80,7 +84,7 @@ class MainViewControllerTest extends ApplicationTest {
         interact(() -> datePicker.setValue(newDate));
         WaitForAsyncUtils.waitForFxEvents();
         assertEquals(newDate, appState.getCurrentWorkingDate());
-        verify(diaryService, atLeastOnce()).loadForDate(newDate);
+        verify(dailyDiaryService, atLeastOnce()).getDiaryForDate(newDate);
     }
 
     @Test
@@ -102,7 +106,7 @@ class MainViewControllerTest extends ApplicationTest {
         LocalDate expectedDate = initialDate.minusDays(1);
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> expectedDate.equals(datePicker.getValue()));
         assertEquals(expectedDate, datePicker.getValue());
-        verify(diaryService, atLeastOnce()).loadForDate(expectedDate);
+        verify(dailyDiaryService, atLeastOnce()).getDiaryForDate(expectedDate);
     }
 
     @Test
@@ -114,7 +118,7 @@ class MainViewControllerTest extends ApplicationTest {
         clickOn("#todayButton");
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> LocalDate.now().equals(datePicker.getValue()));
         assertEquals(LocalDate.now(), datePicker.getValue());
-        verify(diaryService, atLeastOnce()).loadForDate(LocalDate.now());
+        verify(dailyDiaryService, atLeastOnce()).getDiaryForDate(LocalDate.now());
     }
 
     @Test
@@ -127,6 +131,6 @@ class MainViewControllerTest extends ApplicationTest {
         LocalDate expectedDate = initialDate.plusDays(1);
         WaitForAsyncUtils.waitFor(5, TimeUnit.SECONDS, () -> expectedDate.equals(datePicker.getValue()));
         assertEquals(expectedDate, datePicker.getValue());
-        verify(diaryService, atLeastOnce()).loadForDate(expectedDate);
+        verify(dailyDiaryService, atLeastOnce()).getDiaryForDate(expectedDate);
     }
 }

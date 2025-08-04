@@ -1,7 +1,8 @@
 package com.github.pe4enkin.bitelog.controller;
 
 import com.github.pe4enkin.bitelog.model.AppState;
-import com.github.pe4enkin.bitelog.service.DiaryService;
+import com.github.pe4enkin.bitelog.model.DailyDiary;
+import com.github.pe4enkin.bitelog.service.DailyDiaryService;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.DatePicker;
@@ -19,11 +20,11 @@ public class MainViewController {
 
     private Button nextDayButton;
     private final AppState appState;
-    private final DiaryService diaryService;
+    private final DailyDiaryService dailyDiaryService;
 
-    public MainViewController(AppState appState, DiaryService diaryService) {
+    public MainViewController(AppState appState, DailyDiaryService dailyDiaryService) {
         this.appState = appState;
-        this.diaryService = diaryService;
+        this.dailyDiaryService = dailyDiaryService;
     }
 
     @FXML
@@ -34,7 +35,8 @@ public class MainViewController {
                 if (!datePicker.getValue().equals(newValue)) {
                     datePicker.setValue(newValue);
                 }
-                diaryService.loadForDate(newValue);
+                DailyDiary dailyDiary = dailyDiaryService.getDiaryForDate(newValue);
+                updateUIWithDiaryData(dailyDiary);
             }
         });
 
@@ -45,7 +47,8 @@ public class MainViewController {
         });
 
         //Загрузка данных при инициализации приложения
-        diaryService.loadForDate(appState.getCurrentWorkingDate());
+        DailyDiary dailyDiary = dailyDiaryService.getDiaryForDate(appState.getCurrentWorkingDate());
+        updateUIWithDiaryData(dailyDiary);
     }
 
     @FXML
@@ -61,5 +64,9 @@ public class MainViewController {
     @FXML
     private void handleNextDayButtonAction() {
         appState.setCurrentWorkingDate(appState.getCurrentWorkingDate().plusDays(1));
+    }
+
+    private void updateUIWithDiaryData(DailyDiary dailyDiary) {
+
     }
 }

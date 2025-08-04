@@ -1,9 +1,14 @@
 package com.github.pe4enkin.bitelog;
 
 import com.github.pe4enkin.bitelog.controller.MainViewController;
+import com.github.pe4enkin.bitelog.dao.FoodItemDao;
+import com.github.pe4enkin.bitelog.dao.MealEntryDao;
 import com.github.pe4enkin.bitelog.db.DatabaseConnectionManager;
 import com.github.pe4enkin.bitelog.model.AppState;
-import com.github.pe4enkin.bitelog.service.DiaryService;
+import com.github.pe4enkin.bitelog.model.FoodItem;
+import com.github.pe4enkin.bitelog.service.DailyDiaryService;
+import com.github.pe4enkin.bitelog.service.FoodItemService;
+import com.github.pe4enkin.bitelog.service.MealEntryService;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -17,7 +22,7 @@ import java.sql.Connection;
 public class MainApp extends Application {
     private static final Logger LOGGER = LoggerFactory.getLogger(MainApp.class);
     private AppState appState;
-    private DiaryService diaryService;
+    private DailyDiaryService dailyDiaryService;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -28,7 +33,11 @@ public class MainApp extends Application {
             try (Connection testConnection = dataSource.getConnection()) {
                 LOGGER.info("Успешно подключено к базе данных. Приложение готово к запуску UI.");
             }
-            diaryService = new DiaryService(dataSource);
+            FoodItemDao foodItemDao = new FoodItemDao(dataSource);
+            MealEntryDao mealEntryDao = new MealEntryDao(dataSource);
+            FoodItemService foodItemService = new FoodItemService(foodItemDao);
+            MealEntryService mealEntryService = new MealEntryService(mealEntryDao, foodItemService);
+            dailyDiaryService = new DailyDiaryService(mealEntryService);
         } catch (Exception e) {
             LOGGER.error("Критическая ошибка соединения с базой данных.", e);
             javafx.application.Platform.exit();
@@ -37,10 +46,10 @@ public class MainApp extends Application {
         appState = new AppState();
         FXMLLoader loader = new FXMLLoader(
                 getClass().getResource("/com/github/pe4enkin/bitelog/view/main-view.fxml"));
-        MainViewController controller = new MainViewController(appState, diaryService);
+        MainViewController controller = new MainViewController(appState, dailyDiaryService);
         loader.setControllerFactory(type -> {
             if (type == MainViewController.class) {
-                return new MainViewController(appState, diaryService);
+                return new MainViewController(appState, dailyDiaryService);
             } else {
                 try {
                     return type.getDeclaredConstructor().newInstance();

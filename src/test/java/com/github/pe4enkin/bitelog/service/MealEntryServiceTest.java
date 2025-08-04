@@ -73,7 +73,7 @@ public class MealEntryServiceTest {
         mealComponent1 = new MealComponent(1L, 100L, 50);
         mealComponent2 = new MealComponent(2L, 101L, 300);
         mealEntry = new MealEntry.Builder()
-                .setDate(LocalDate.of(2025, 07, 29))
+                .setDate(LocalDate.of(2025, 7, 29))
                 .setTime(LocalTime.of(19, 30))
                 .setMealCategory(MealCategory.DINNER)
                 .setTotalCalories(0.0)
@@ -85,7 +85,7 @@ public class MealEntryServiceTest {
                 .build();
         savedMealEntry = new MealEntry.Builder()
                 .setId(100L)
-                .setDate(LocalDate.of(2025, 07, 29))
+                .setDate(LocalDate.of(2025, 7, 29))
                 .setTime(LocalTime.of(19, 30))
                 .setMealCategory(MealCategory.DINNER)
                 .setTotalCalories(0.0)
@@ -108,7 +108,7 @@ public class MealEntryServiceTest {
 
         assertNotNull(createdMealEntry);
         assertEquals(100L, createdMealEntry.getId(), "ID должен быть присвоен после операции создания.");
-        assertEquals(LocalDate.of(2025, 07, 29), createdMealEntry.getDate(), "После операции создания мы должны получить обратно запись с той же датой.");
+        assertEquals(LocalDate.of(2025, 7, 29), createdMealEntry.getDate(), "После операции создания мы должны получить обратно запись с той же датой.");
         assertEquals(695.0, createdMealEntry.getTotalCalories(), 0.001, "Значение калорийности должно корректно рассчитаться после операции создания.");
         assertEquals(57.5, createdMealEntry.getTotalProteins(), 0.001, "Значение белков должно корректно рассчитаться после операции создания.");
         assertEquals(50.0, createdMealEntry.getTotalFats(), 0.001, "Значение жиров должно корректно рассчитаться после операции создания.");
@@ -129,7 +129,7 @@ public class MealEntryServiceTest {
 
         assertNotNull(createdMealEntry);
         assertEquals(100L, createdMealEntry.getId(), "ID должен быть присвоен после операции создания.");
-        assertEquals(LocalDate.of(2025, 07, 29), createdMealEntry.getDate(), "После операции создания мы должны получить обратно запись с той же датой.");
+        assertEquals(LocalDate.of(2025, 7, 29), createdMealEntry.getDate(), "После операции создания мы должны получить обратно запись с той же датой.");
         assertEquals(0.0, createdMealEntry.getTotalCalories(), 0.001, "Значение калорийности должно быть 0 при пустом списке.");
         assertEquals(0.0, createdMealEntry.getTotalProteins(), 0.001, "Значение белков должно быть 0 при пустом списке.");
         assertEquals(0.0, createdMealEntry.getTotalFats(), 0.001, "Значение жиров должно быть 0 при пустом списке.");
@@ -176,7 +176,7 @@ public class MealEntryServiceTest {
 
         assertTrue(foundMealEntry.isPresent(), "MealEntry должен быть найден.");
         assertEquals(100L, foundMealEntry.get().getId(), "ID найденного MealEntry должно совпадать.");
-        assertEquals(LocalDate.of(2025, 07, 29), foundMealEntry.get().getDate(), "Дата найденного MealEntry должна совпадать.");
+        assertEquals(LocalDate.of(2025, 7, 29), foundMealEntry.get().getDate(), "Дата найденного MealEntry должна совпадать.");
         assertEquals(695.0, foundMealEntry.get().getTotalCalories(), 0.001, "Значение калорийности должно корректно рассчитаться после операции поиска.");
         assertEquals(57.5, foundMealEntry.get().getTotalProteins(), 0.001, "Значение белков должно корректно рассчитаться после операции поиска.");
         assertEquals(50.0, foundMealEntry.get().getTotalFats(), 0.001, "Значение жиров должно корректно рассчитаться после операции поиска.");
@@ -223,7 +223,7 @@ public class MealEntryServiceTest {
 
         assertNotNull(updatedMealEntry);
         assertEquals(100L, updatedMealEntry.getId(), "ID должен сохраниться после операции обновления.");
-        assertEquals(LocalDate.of(2025, 07, 29), updatedMealEntry.getDate(), "После операции обновления мы должны получить обратно MealEntry с той же датой.");
+        assertEquals(LocalDate.of(2025, 7, 29), updatedMealEntry.getDate(), "После операции обновления мы должны получить обратно MealEntry с той же датой.");
         assertEquals(695.0, updatedMealEntry.getTotalCalories(), 0.001, "Значение калорийности должно корректно рассчитаться после операции обновления.");
         assertEquals(57.5, updatedMealEntry.getTotalProteins(), 0.001, "Значение белков должно корректно рассчитаться после операции обновления.");
         assertEquals(50.0, updatedMealEntry.getTotalFats(), 0.001, "Значение жиров должно корректно рассчитаться после операции обновления.");
@@ -311,7 +311,7 @@ public class MealEntryServiceTest {
 
         MealEntry anotherSavedMealEntry = new MealEntry.Builder()
                 .setId(101L)
-                .setDate(LocalDate.of(2025, 07, 29))
+                .setDate(LocalDate.of(2025, 7, 29))
                 .setTime(LocalTime.of(19, 30))
                 .setMealCategory(MealCategory.DINNER)
                 .setTotalCalories(0.0)
@@ -322,25 +322,25 @@ public class MealEntryServiceTest {
                 .setComponents(List.of(new MealComponent(3L, foodItem1.getId(), 200)))
                 .build();
 
-        when(mealEntryDao.findAllByDate(LocalDate.of(2025, 07, 29))).thenReturn(List.of(savedMealEntry, anotherSavedMealEntry));
-        List<MealEntry> mealEntries = mealEntryService.getAllByDate(LocalDate.of(2025, 07, 29));
+        when(mealEntryDao.findAllByDate(LocalDate.of(2025, 7, 29))).thenReturn(List.of(savedMealEntry, anotherSavedMealEntry));
+        List<MealEntry> mealEntries = mealEntryService.getAllByDate(LocalDate.of(2025, 7, 29));
 
         assertNotNull(mealEntries);
         assertEquals(2, mealEntries.size(), "В списке должно быть 2 записи.");
         assertEquals(100L, mealEntries.get(0).getId(), "ID найденного MealEntry должно совпадать.");
-        assertEquals(LocalDate.of(2025, 07, 29), mealEntries.get(0).getDate(), "Дата найденного MealEntry должна совпадать.");
+        assertEquals(LocalDate.of(2025, 7, 29), mealEntries.get(0).getDate(), "Дата найденного MealEntry должна совпадать.");
         assertEquals(695.0, mealEntries.get(0).getTotalCalories(), 0.001, "Значение калорийности должно корректно рассчитаться после операции поиска.");
         assertEquals(57.5, mealEntries.get(0).getTotalProteins(), 0.001, "Значение белков должно корректно рассчитаться после операции поиска.");
         assertEquals(50.0, mealEntries.get(0).getTotalFats(), 0.001, "Значение жиров должно корректно рассчитаться после операции поиска.");
         assertEquals(2.0, mealEntries.get(0).getTotalCarbs(), 0.001, "Значение углеводов должно корректно рассчитаться после операции поиска.");
         assertEquals(101L, mealEntries.get(1).getId(), "ID найденного MealEntry должно совпадать.");
-        assertEquals(LocalDate.of(2025, 07, 29), mealEntries.get(1).getDate(), "Дата найденного MealEntry должна совпадать.");
+        assertEquals(LocalDate.of(2025, 7, 29), mealEntries.get(1).getDate(), "Дата найденного MealEntry должна совпадать.");
         assertEquals(500.0, mealEntries.get(1).getTotalCalories(), 0.001, "Значение калорийности должно корректно рассчитаться после операции поиска.");
         assertEquals(38.0, mealEntries.get(1).getTotalProteins(), 0.001, "Значение белков должно корректно рассчитаться после операции поиска.");
         assertEquals(32.0, mealEntries.get(1).getTotalFats(), 0.001, "Значение жиров должно корректно рассчитаться после операции поиска.");
         assertEquals(2.0, mealEntries.get(1).getTotalCarbs(), 0.001, "Значение углеводов должно корректно рассчитаться после операции поиска.");
 
-        verify(mealEntryDao).findAllByDate(LocalDate.of(2025, 07, 29));
+        verify(mealEntryDao).findAllByDate(LocalDate.of(2025, 7, 29));
         verify(foodItemService, times(2)).getFoodItemById(100L);
         verify(foodItemService, times(1)).getFoodItemById(101L);
     }
@@ -348,25 +348,25 @@ public class MealEntryServiceTest {
     @Test
     @DisplayName("Метод getAllByDate должен возвращать пустой список если записей на нужную дату нет.")
     void getAllByDate_shouldReturnAEmptyListIfNoEntriesByDate() {
-        when(mealEntryDao.findAllByDate(LocalDate.of(2025, 07, 29))).thenReturn(new ArrayList<>());
-        List<MealEntry> mealEntries = mealEntryService.getAllByDate(LocalDate.of(2025, 07, 29));
+        when(mealEntryDao.findAllByDate(LocalDate.of(2025, 7, 29))).thenReturn(new ArrayList<>());
+        List<MealEntry> mealEntries = mealEntryService.getAllByDate(LocalDate.of(2025, 7, 29));
 
         assertNotNull(mealEntries);
         assertTrue(mealEntries.isEmpty(), "Метод getAllByDate должен вернуть пустой список если meal entry нет.");
 
-        verify(mealEntryDao).findAllByDate(LocalDate.of(2025, 07, 29));
+        verify(mealEntryDao).findAllByDate(LocalDate.of(2025, 7, 29));
         verify(foodItemService, never()).getFoodItemById(anyLong());
     }
 
     @Test
     @DisplayName("ServiceException при ошибке DAO во время вызова метода getAllByDate.")
     void getAllByDate_shouldThrowServiceExceptionOnDataAccessException() {
-        when(mealEntryDao.findAllByDate(LocalDate.of(2025, 07, 29))).thenThrow(new DataAccessException("Ошибка БД."));
+        when(mealEntryDao.findAllByDate(LocalDate.of(2025, 7, 29))).thenThrow(new DataAccessException("Ошибка БД."));
 
-        ServiceException exception = assertThrows(ServiceException.class, () -> mealEntryService.getAllByDate(LocalDate.of(2025, 07, 29)),
+        ServiceException exception = assertThrows(ServiceException.class, () -> mealEntryService.getAllByDate(LocalDate.of(2025, 7, 29)),
                 "Должно быть ServiceException при ошибке DAO во время вызова метода getAllByDate.");
         assertTrue(exception.getMessage().contains("Не удалось получить список MealEntries на дату 29.07.2025:"),
                 "Сообщение об ошибке должно указывать на проблему с поиском MealEntry.");
-        verify(mealEntryDao).findAllByDate(LocalDate.of(2025, 07, 29));
+        verify(mealEntryDao).findAllByDate(LocalDate.of(2025, 7, 29));
     }
 }

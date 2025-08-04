@@ -25,7 +25,7 @@ class AppStateTest {
     @Test
     @DisplayName("Обновление рабочей даты")
     void shouldUpdateCurrentWorkingDate() {
-        LocalDate testDate = LocalDate.of(2025, 06, 19);
+        LocalDate testDate = LocalDate.of(2025, 6, 19);
         appState.setCurrentWorkingDate(testDate);
         assertEquals(testDate, appState.getCurrentWorkingDate());
     }
