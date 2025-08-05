@@ -11,8 +11,10 @@ import javafx.stage.Stage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.testfx.framework.junit5.ApplicationTest;
 import org.testfx.util.WaitForAsyncUtils;
 
@@ -26,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class MainViewControllerTest extends ApplicationTest {
     private MainViewController controller;
     private AppState appState;
@@ -36,7 +39,6 @@ class MainViewControllerTest extends ApplicationTest {
 
     @Override
     public void start(Stage stage) throws Exception {
-        MockitoAnnotations.openMocks(this);
         appState = new AppState();
         dailyDiary = new DailyDiary(LocalDate.now(), new ArrayList<>());
         when(dailyDiaryService.getDiaryForDate(any(LocalDate.class))).thenReturn(dailyDiary);
