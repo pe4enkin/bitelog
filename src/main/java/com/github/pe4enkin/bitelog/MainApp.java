@@ -1,6 +1,7 @@
 package com.github.pe4enkin.bitelog;
 
 import com.github.pe4enkin.bitelog.controller.MainViewController;
+import com.github.pe4enkin.bitelog.dao.FoodCategoryDao;
 import com.github.pe4enkin.bitelog.dao.FoodItemDao;
 import com.github.pe4enkin.bitelog.dao.MealEntryDao;
 import com.github.pe4enkin.bitelog.db.DatabaseConnectionManager;
@@ -22,6 +23,8 @@ import java.sql.Connection;
 public class MainApp extends Application {
     private static final Logger LOGGER = LoggerFactory.getLogger(MainApp.class);
     private AppState appState;
+    private FoodItemService foodItemService;
+    private MealEntryService mealEntryService;
     private DailyDiaryService dailyDiaryService;
 
     @Override
@@ -35,35 +38,39 @@ public class MainApp extends Application {
             }
             FoodItemDao foodItemDao = new FoodItemDao(dataSource);
             MealEntryDao mealEntryDao = new MealEntryDao(dataSource);
-            FoodItemService foodItemService = new FoodItemService(foodItemDao);
-            MealEntryService mealEntryService = new MealEntryService(mealEntryDao, foodItemService);
+            foodItemDao.createTables();
+            mealEntryDao.createTables();
+            foodItemService = new FoodItemService(foodItemDao);
+            mealEntryService = new MealEntryService(mealEntryDao, foodItemService);
             dailyDiaryService = new DailyDiaryService(mealEntryService);
+
+            appState = new AppState();
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/github/pe4enkin/bitelog/view/main-view.fxml"));
+            loader.setControllerFactory(type -> {
+                if (type == MainViewController.class) {
+                    return new MainViewController(appState, foodItemService, dailyDiaryService);
+                } else {
+                    try {
+                        return type.getDeclaredConstructor().newInstance();
+                    } catch (Exception e) {
+                        throw new RuntimeException("Не удалось создать контроллер: " + type.getName(), e);
+                    }
+                }
+            });
+            Scene scene = new Scene(loader.load());
+            scene.getStylesheets().add(
+                    getClass().getResource("/com/github/pe4enkin/bitelog/styles/application.css").toExternalForm());
+            primaryStage.setTitle("BiteLog");
+            primaryStage.setScene(scene);
+            primaryStage.setMinWidth(800);
+            primaryStage.setMinHeight(600);
+            primaryStage.show();
         } catch (Exception e) {
             LOGGER.error("Критическая ошибка соединения с базой данных.", e);
             javafx.application.Platform.exit();
             System.exit(1);
         }
-        appState = new AppState();
-        FXMLLoader loader = new FXMLLoader(
-                getClass().getResource("/com/github/pe4enkin/bitelog/view/main-view.fxml"));
-        MainViewController controller = new MainViewController(appState, dailyDiaryService);
-        loader.setControllerFactory(type -> {
-            if (type == MainViewController.class) {
-                return new MainViewController(appState, dailyDiaryService);
-            } else {
-                try {
-                    return type.getDeclaredConstructor().newInstance();
-                } catch (Exception e) {
-                    throw new RuntimeException("Не удалось создать контроллер: " + type.getName(), e);
-                }
-            }
-        });
-        Scene scene = new Scene(loader.load());
-        scene.getStylesheets().add(
-                getClass().getResource("/com/github/pe4enkin/bitelog/styles/application.css").toExternalForm());
-        primaryStage.setTitle("BiteLog");
-        primaryStage.setScene(scene);
-        primaryStage.show();
     }
 
     public void stop() throws Exception {
